@@ -70,12 +70,12 @@
 
   .layout{
     display:grid;
-    grid-template-columns:300px 1fr;
+    grid-template-columns:300px minmax(0,1fr); /* minmax(0,…) : le tableau défile dans sa carte au lieu d'élargir la page */
     gap:20px;
     padding:20px;
     align-items:start;
   }
-  @media (max-width:900px){ .layout{grid-template-columns:1fr;} }
+  @media (max-width:900px){ .layout{grid-template-columns:minmax(0,1fr);} }
 
   .card{
     background:var(--card);
@@ -313,7 +313,7 @@
   /* Tooltip live route edit */
   .route-live-tip{background:rgba(255,255,255,0.97)!important;border:1.5px solid #f97316!important;border-radius:8px!important;padding:8px 12px!important;box-shadow:0 4px 16px rgba(0,0,0,0.18)!important;font-family:var(--font-sans)!important;pointer-events:none!important;}
   .route-live-tip::before{border-top-color:#f97316!important;}
-  .time-input{width:52px;border:none;background:transparent;font-size:12px;color:var(--text-primary);font-family:var(--font-mono);text-align:center;cursor:pointer;padding:1px 2px;border-radius:3px;}
+  .time-input{width:84px;min-width:84px;border:none;background:transparent;font-size:12px;color:var(--text-primary);font-family:var(--font-mono);text-align:center;cursor:pointer;padding:1px 2px;border-radius:3px;}
   .time-input:hover,.time-input:focus{background:var(--surface-2);outline:1px solid var(--border-accent);}
   .time-arr{font-size:12px;font-family:var(--font-mono);color:var(--text-secondary);}
   .btn-export{padding:3px 9px;font-size:11px;border-radius:5px;border:1px solid #dde6ed;background:#fff;color:#5d7a90;cursor:pointer;}
@@ -339,11 +339,26 @@
   #leftCol.archive-mode .archive-hint{display:block;}
   /* Noms d'îles : 4x la taille des étiquettes d'escale (10.5px), taille écran constante quel que soit le zoom */
   .island-label{background:none;border:none;}
-  .island-label span{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;font-family:Georgia,"Times New Roman",serif;font-style:italic;font-weight:700;font-size:42px;letter-spacing:.06em;color:rgba(12,45,73,.42);text-shadow:0 0 4px rgba(255,255,255,.95),0 0 10px rgba(255,255,255,.8);pointer-events:none;}
+  .island-label span{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;font-weight:700;font-size:var(--isl-fs,42px);letter-spacing:.04em;color:rgba(12,45,73,.40);text-shadow:0 0 4px rgba(255,255,255,.95),0 0 10px rgba(255,255,255,.8);pointer-events:none;}
   .planner-status{font-size:11.5px;line-height:1.5;border-radius:8px;padding:8px 10px;margin-bottom:12px;background:#f1f6fa;border:1px solid var(--border);color:var(--text);}
   .planner-status.on{background:#eef7f1;border-color:#b7dcc4;}
   .planner-status button{margin-top:6px;font-size:11px;padding:4px 9px;border-radius:6px;border:1px solid var(--border);background:white;cursor:pointer;}
   .sail-hint{font-size:11px;color:var(--teal);font-weight:700;margin-top:3px;}
+
+  /* Volets figés (freeze panes) du tableau Itinéraire : en-tête + colonnes jusqu'à ESCALE RECOMMANDÉE */
+  #itinWrap{max-height:78vh;overflow:auto;}
+  #itinTable tbody tr{background:#fff;}
+  #itinTable tbody tr.modified{background:var(--amber-bg);}
+  #itinTable tbody tr.elapsed{background:#eefaf2;}
+  #itinTable thead th{position:sticky;top:0;z-index:3;background:#f7fafc;}
+  #itinTable .fz{position:sticky;background-color:inherit;z-index:2;}
+  #itinTable thead th.fz{z-index:4;background:#f7fafc;}
+  #itinTable .fz-day{left:0;min-width:64px;width:64px;}
+  #itinTable .fz-wind{left:64px;min-width:72px;width:72px;}
+  #itinTable .fz-type{left:136px;min-width:78px;width:78px;}
+  #itinTable .fz-rec{left:214px;min-width:230px;width:230px;box-shadow:3px 0 4px -2px rgba(12,45,73,.25);}
+  #itinTable tbody td.fz-day{background:#fff;}
+  #itinTable tbody tr.elapsed td.fz-day{background:#eefaf2;}
 </style>
 <div id="iconTooltipWater" class="icon-tooltip icon-tooltip-water"></div>
 <div id="iconTooltipAtm"   class="icon-tooltip icon-tooltip-atm"></div>
@@ -356,68 +371,109 @@
 
 <div class="bg-art" aria-hidden="true">
 <svg viewBox="0 0 680 400" preserveAspectRatio="xMidYMid slice" role="img">
-<title>Coucher de soleil caribéen avec un navire pirate en silhouette</title>
+<title>Nuit de pleine lune : galion pirate battant pavillon noir (tête de mort, sabres et tibias croisés)</title>
 <defs>
 <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-<stop offset="0%" stop-color="#141c38"/>
-<stop offset="38%" stop-color="#4a3b63"/>
-<stop offset="72%" stop-color="#c96a3c"/>
-<stop offset="100%" stop-color="#ffb774"/>
+<stop offset="0%" stop-color="#05070f"/>
+<stop offset="45%" stop-color="#141a33"/>
+<stop offset="80%" stop-color="#3a2236"/>
+<stop offset="100%" stop-color="#6b2e2a"/>
 </linearGradient>
 <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
-<stop offset="0%" stop-color="#e6a35f"/>
-<stop offset="18%" stop-color="#b97a52"/>
-<stop offset="45%" stop-color="#3c6a6e"/>
-<stop offset="100%" stop-color="#0a2230"/>
+<stop offset="0%" stop-color="#2a2433"/>
+<stop offset="25%" stop-color="#14273a"/>
+<stop offset="100%" stop-color="#03080f"/>
 </linearGradient>
+<radialGradient id="moonGlow" cx="0.5" cy="0.5" r="0.5">
+<stop offset="0%" stop-color="#f3ecd2" stop-opacity="0.55"/>
+<stop offset="60%" stop-color="#cfc6a8" stop-opacity="0.12"/>
+<stop offset="100%" stop-color="#cfc6a8" stop-opacity="0"/>
+</radialGradient>
 </defs>
-<rect x="0" y="0" width="680" height="240" fill="url(#sky)"/>
-<rect x="0" y="240" width="680" height="160" fill="url(#sea)"/>
-<circle cx="486" cy="236" r="58" fill="#ffd9a0" opacity="0.18"/>
-<circle cx="486" cy="236" r="42" fill="#ffcf8c" opacity="0.30"/>
-<circle cx="486" cy="236" r="30" fill="#ffe7b8"/>
-<ellipse cx="560" cy="190" rx="46" ry="10" fill="#3a2c52" opacity="0.45"/>
-<ellipse cx="600" cy="205" rx="34" ry="8" fill="#5a3f5f" opacity="0.35"/>
-<ellipse cx="120" cy="120" rx="60" ry="12" fill="#2c2348" opacity="0.4"/>
-<ellipse cx="180" cy="150" rx="40" ry="9" fill="#3a2c52" opacity="0.3"/>
-<path d="M0,80 q6,-7 12,0 q6,-7 12,0" fill="none" stroke="#1c1430" stroke-width="1.6" opacity="0.7"/>
-<path d="M40,60 q6,-7 12,0 q6,-7 12,0" fill="none" stroke="#1c1430" stroke-width="1.6" opacity="0.6"/>
-<path d="M540,70 q6,-7 12,0 q6,-7 12,0" fill="none" stroke="#1c1430" stroke-width="1.6" opacity="0.5"/>
-<polygon points="0,238 40,238 60,222 90,238 130,238 110,210 70,210" fill="#1a1f2e" opacity="0.55"/>
-<polygon points="600,239 630,239 645,228 680,239 680,239 660,224 625,224" fill="#1a1f2e" opacity="0.45"/>
-<g opacity="0.5" stroke="#f3b06a" stroke-width="1" fill="none">
-<path d="M310,250 Q340,246 370,250 T430,250"/>
-<path d="M300,262 Q335,258 370,262 T440,262"/>
-<path d="M290,276 Q330,271 370,276 T450,276"/>
+<rect x="0" y="0" width="680" height="250" fill="url(#sky)"/>
+<rect x="0" y="250" width="680" height="150" fill="url(#sea)"/>
+<g fill="#e9e4cf" opacity="0.7">
+<circle cx="40" cy="30" r="0.9"/><circle cx="95" cy="62" r="0.7"/><circle cx="160" cy="22" r="1"/><circle cx="230" cy="48" r="0.6"/>
+<circle cx="610" cy="40" r="0.9"/><circle cx="650" cy="90" r="0.7"/><circle cx="455" cy="28" r="0.8"/><circle cx="20" cy="110" r="0.6"/>
+<circle cx="300" cy="20" r="0.7"/><circle cx="575" cy="140" r="0.6"/>
 </g>
-<g opacity="0.3" stroke="#dfe9ea" stroke-width="1" fill="none">
+<circle cx="540" cy="110" r="95" fill="url(#moonGlow)"/>
+<circle cx="540" cy="110" r="38" fill="#ece5c9"/>
+<circle cx="527" cy="100" r="7" fill="#d8cfae" opacity="0.7"/>
+<circle cx="552" cy="122" r="5" fill="#d8cfae" opacity="0.6"/>
+<circle cx="548" cy="96" r="3" fill="#d8cfae" opacity="0.6"/>
+<ellipse cx="500" cy="128" rx="70" ry="9" fill="#0d1124" opacity="0.75"/>
+<ellipse cx="600" cy="150" rx="55" ry="7" fill="#0d1124" opacity="0.6"/>
+<ellipse cx="90" cy="150" rx="80" ry="10" fill="#1a1630" opacity="0.6"/>
+<g opacity="0.55" fill="#e9e1c2">
+<rect x="528" y="262" width="26" height="2" rx="1"/>
+<rect x="518" y="274" width="40" height="2" rx="1"/>
+<rect x="532" y="288" width="22" height="2" rx="1"/>
+<rect x="510" y="304" width="50" height="2" rx="1"/>
+<rect x="526" y="322" width="30" height="2" rx="1"/>
+<rect x="515" y="344" width="44" height="2" rx="1"/>
+</g>
+<g opacity="0.22" stroke="#9fb6c4" stroke-width="1" fill="none">
 <path d="M0,300 Q60,295 120,300 T240,300 T360,300 T480,300 T600,300 T680,300"/>
-<path d="M0,330 Q70,324 140,330 T280,330 T420,330 T560,330 T680,330"/>
-<path d="M0,365 Q80,359 160,365 T320,365 T480,365 T680,365"/>
+<path d="M0,332 Q70,326 140,332 T280,332 T420,332 T560,332 T680,332"/>
+<path d="M0,368 Q80,362 160,368 T320,368 T480,368 T680,368"/>
 </g>
-<g opacity="0.55" fill="#f4c98a">
-<rect x="478" y="252" width="14" height="2" rx="1"/>
-<rect x="470" y="262" width="22" height="2" rx="1"/>
-<rect x="482" y="274" width="12" height="2" rx="1"/>
-<rect x="465" y="288" width="28" height="2" rx="1"/>
-<rect x="480" y="304" width="16" height="2" rx="1"/>
+<polygon points="600,251 628,251 640,240 680,251 680,251 664,236 632,236" fill="#05070c" opacity="0.8"/>
+<!-- Galion -->
+<g fill="#07080c">
+<path d="M118,236 L122,226 L160,226 L168,232 L392,232 L404,224 L414,226 L404,248 C380,266 300,272 238,270 C180,268 140,258 118,236 Z"/>
+<rect x="120" y="214" width="46" height="13"/>
+<path d="M404,226 L452,212 L454,216 L410,232 Z"/>
+<rect x="196" y="96" width="3.4" height="132"/>
+<rect x="268" y="52" width="4" height="178"/>
+<rect x="340" y="104" width="3.4" height="126"/>
+<path d="M170,112 L226,112 C230,140 230,166 226,192 L170,192 C174,166 174,140 170,112 Z M186,150 l6,4 l-4,6 Z"/>
+<path d="M176,198 L220,198 C223,206 223,214 220,220 L176,220 C179,214 179,206 176,198 Z"/>
+<path d="M236,74 L304,74 C309,104 309,130 304,160 L236,160 C241,130 241,104 236,74 Z"/>
+<path d="M240,168 L300,168 C304,184 304,198 300,212 L240,212 C244,198 244,184 240,168 Z"/>
+<path d="M314,120 L368,120 C372,144 372,166 368,188 L314,188 C318,166 318,144 314,120 Z"/>
+<path d="M343,104 L343,222 L395,222 Z" opacity="0.9"/>
 </g>
-<g fill="#161009">
-<path d="M252,232 C262,248 300,256 338,256 C378,256 418,248 430,231 C400,238 360,241 338,241 C306,241 274,238 252,232 Z"/>
-<rect x="335" y="98" width="3" height="135"/>
-<rect x="282" y="142" width="2.4" height="91"/>
-<rect x="392" y="125" width="2.4" height="108"/>
-<path d="M338,100 C366,108 380,138 372,168 C360,150 344,134 338,124 Z"/>
-<path d="M284,144 C306,150 316,172 310,194 C300,180 288,168 284,160 Z"/>
-<path d="M394,127 C414,134 422,154 416,176 C406,162 396,150 394,142 Z"/>
-<path d="M338,98 L362,104 L338,110 Z"/>
+<g fill="#20232c">
+<rect x="180" y="238" width="7" height="5" rx="1"/><rect x="214" y="240" width="7" height="5" rx="1"/>
+<rect x="248" y="241" width="7" height="5" rx="1"/><rect x="282" y="241" width="7" height="5" rx="1"/>
+<rect x="316" y="240" width="7" height="5" rx="1"/><rect x="350" y="238" width="7" height="5" rx="1"/>
 </g>
-<g stroke="#161009" stroke-width="0.8" opacity="0.6" fill="none">
-<line x1="338" y1="100" x2="284" y2="144"/>
-<line x1="338" y1="100" x2="394" y2="127"/>
-<line x1="338" y1="233" x2="282" y2="160"/>
-<line x1="338" y1="233" x2="392" y2="160"/>
+<g stroke="#07080c" stroke-width="0.8" fill="none" opacity="0.8">
+<line x1="270" y1="54" x2="198" y2="98"/><line x1="270" y1="54" x2="342" y2="106"/>
+<line x1="270" y1="54" x2="452" y2="213"/><line x1="198" y1="98" x2="122" y2="214"/>
+<line x1="270" y1="230" x2="198" y2="150"/><line x1="270" y1="230" x2="342" y2="160"/>
 </g>
+<!-- Pavillon noir sur le grand mât -->
+<path d="M272,54 C300,46 322,62 350,56 C374,51 392,44 410,50 L414,138 C394,132 376,140 352,144 C324,149 300,136 272,142 Z" fill="#0b0b10" stroke="#3b3e4a" stroke-width="0.8"/>
+<g fill="#ece7d6" stroke="#ece7d6" stroke-linecap="round">
+<!-- sabres croisés derrière le crâne -->
+<path d="M296,66 C320,80 352,104 380,130" fill="none" stroke-width="3"/>
+<path d="M398,66 C374,80 342,104 314,130" fill="none" stroke-width="3"/>
+<rect x="374" y="122" width="12" height="3.2" transform="rotate(42 380 124)" stroke="none"/>
+<rect x="308" y="122" width="12" height="3.2" transform="rotate(-42 314 124)" stroke="none"/>
+<path d="M382,129 l7,7" fill="none" stroke-width="3.4"/>
+<path d="M312,129 l-7,7" fill="none" stroke-width="3.4"/>
+<!-- tibias croisés sous la mâchoire -->
+<path d="M318,104 L376,136" fill="none" stroke-width="4.2"/>
+<path d="M376,104 L318,136" fill="none" stroke-width="4.2"/>
+<circle cx="316" cy="101" r="3.2" stroke="none"/><circle cx="320" cy="99.5" r="3.2" stroke="none"/>
+<circle cx="378" cy="101" r="3.2" stroke="none"/><circle cx="374" cy="99.5" r="3.2" stroke="none"/>
+<circle cx="316" cy="139" r="3.2" stroke="none"/><circle cx="320" cy="140.5" r="3.2" stroke="none"/>
+<circle cx="378" cy="139" r="3.2" stroke="none"/><circle cx="374" cy="140.5" r="3.2" stroke="none"/>
+<!-- crâne -->
+<path d="M347,72 C362,72 371,82 371,95 C371,103 367,108 362,111 L362,119 L332,119 L332,111 C327,108 323,103 323,95 C323,82 332,72 347,72 Z" stroke="none"/>
+</g>
+<g fill="#0b0b10">
+<ellipse cx="338.5" cy="96" rx="6" ry="6.5"/>
+<ellipse cx="355.5" cy="96" rx="6" ry="6.5"/>
+<path d="M347,102 L343.5,109 L350.5,109 Z"/>
+<rect x="337" y="113" width="1.6" height="6"/><rect x="342" y="113" width="1.6" height="6"/>
+<rect x="347" y="113" width="1.6" height="6"/><rect x="352" y="113" width="1.6" height="6"/>
+<rect x="357" y="113" width="1.6" height="6"/>
+</g>
+<!-- reflet du navire -->
+<path d="M150,262 C200,280 330,282 400,264" fill="none" stroke="#000" stroke-width="10" opacity="0.25"/>
 </svg>
 </div>
 <div class="bg-overlay" aria-hidden="true"></div>
@@ -511,7 +567,7 @@
         <p><b>Pré-rempli</b> — à l'ouverture, la nouvelle navigation reprend le trajet de l'été 2026. Dès que tu bouges un réglage (curseurs, 📌, 🚫, notes, rôles), le <b>planificateur</b> construit une nouvelle boucle au départ et au retour de Marina Agana.</p>
         <p><b>Sailing</b> fixe la distance cible par jour (1 → ~8 NM, 5 → ~28 NM, 8 → ~43 NM, 10 → ~53 NM). Plus il est haut, plus le planificateur va loin (Vis, Biševo, Šćedro…) et privilégie les îles pas encore visitées et les escales bien notées par les navigateurs (Navily).</p>
         <p><b>Max Nav'</b> est un plafond dur <b>par jour</b> (Nuit → Pause → Nuit) : aucune journée générée ne le dépasse. S'il est sous la cible Sailing, c'est lui qui limite.</p>
-        <p><b>Atmosphere / Swimming / Restaurant / Beaugossitude</b> pondèrent le choix des escales. Les nuits exposées au vent prévu (Open-Meteo) sont pénalisées ; 💧 impose une escale avec eau au moins tous les N jours.</p>
+        <p><b>Atmosphere</b> est un profil cible (1 = crique sauvage, 5 = mixte, 10 = village animé). <b>Swimming / Restaurant / Beaugossitude</b> sont des importances : à 1 le critère est ignoré, à 10 il devient décisif. Les nuits exposées au vent prévu (Open-Meteo) sont pénalisées ; 💧 impose une escale avec eau au moins tous les N jours.</p>
         <p><b>📌 Must keep</b> force une escale dans la boucle ; <b>🚫 Discard</b> l'exclut. Tu peux aussi <b>forcer</b> une escale via le menu déroulant ou en la glissant sur la carte (mode ✏️) : le reste de la boucle se recalcule autour.</p>
         <p><b>⚖</b> signale un tronçon très éloigné de la cible (moins de 40 % ou plus de 180 % de la demi-journée cible).</p>
         <p>Distances mesurées le long de la route dessinée sur la carte (contournement des îles, ou ta route ajustée en mode ✏️) — vitesse de croisière : 6 nds.</p>
@@ -528,7 +584,7 @@
         <button class="tab-btn active" id="tabBtnItin" onclick="switchTab('itin')">🧭 Itinéraire</button>
         <button class="tab-btn" id="tabBtnEscales" onclick="switchTab('escales')">📋 Toutes les escales</button>
       </div>
-      <div class="tab-group archive" style="margin-left:auto;">
+      <div class="tab-group archive" style="margin-left:113px;">
         <span class="tab-group-label">🏖 Vacances été 2026</span>
         <button class="tab-btn" id="tabBtnArchCarte" onclick="switchTab('archCarte')">🗺️ Carte</button>
         <button class="tab-btn" id="tabBtnArchItin" onclick="switchTab('archItin')">🧭 Itinéraire</button>
@@ -556,15 +612,15 @@
       
     </div>
     <div id="mustKeepBanner"></div>
-    <div class="table-wrap">
-      <table>
+    <div class="table-wrap" id="itinWrap">
+      <table id="itinTable">
         <thead>
           <tr>
-            <th>JOUR</th>
-            <th title="Vent dominant : matin (jusqu'à 13h) sur la ligne Pause, après-midi/soir sur la ligne Nuit. Survolez pour le détail heure par heure.">💨 VENT</th>
-            <th>TYPE</th>
+            <th class="fz fz-day">JOUR</th>
+            <th class="fz fz-wind" title="Vent dominant : matin (jusqu'à 13h) sur la ligne Pause, après-midi/soir sur la ligne Nuit. Survolez pour le détail heure par heure.">💨 VENT</th>
+            <th class="fz fz-type">TYPE</th>
+            <th class="fz fz-rec">ESCALE RECOMMANDÉE</th>
             <th>ESCALE D'ORIGINE</th>
-            <th>ESCALE RECOMMANDÉE</th>
             <th>RAISON DU CHANGEMENT</th>
             <th>DISTANCE</th>
             <th>TEMPS NAV.</th>
@@ -723,10 +779,11 @@ const ANGLES = {N:-90, NE:-45, E:0, SE:45, S:90, SW:135, W:180, NW:-135};
 
 const JOURS_FR = ['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
 const MOIS_FR = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
-let CRUISE_START = new Date(DATA.cruiseStartDate + 'T00:00:00');
+let CRUISE_START = (() => { const d = new Date(); d.setHours(0,0,0,0); return d; })(); // par défaut : date du jour
 function setCruiseStart(dateStr){
   if(!dateStr) return;
   CRUISE_START = new Date(dateStr + 'T00:00:00');
+  Object.keys(windCache).forEach(k => delete windCache[k]); // les prévisions de l'ancienne date ne valent plus
   render();
   preloadWindForecast();
 }
@@ -753,30 +810,51 @@ function formatDuration(hoursFloat){
 
 let currentWind = 'NW'; // valeur de repli tant que la prévision n'est pas encore chargée (voir windCache/preloadWindForecast)
 const windCache = {}; // windCache[stopName][dayIndex] = { morning:{dir8,speedKt,bft,hourly}, afternoon:{...} }
-function fmtISODate(d){ return d.toISOString().slice(0,10); }
+function fmtISODate(d){ // date LOCALE (toISOString passait en UTC et décalait d'un jour)
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
 function windForLeg(name, day, category){
   const period = category === 'Pause' ? 'morning' : 'afternoon';
   const w = windCache[name] && windCache[name][day] && windCache[name][day][period];
-  return w ? w.dir8 : currentWind; // repli si pas encore chargé pour cette escale/jour
+  return w ? w.dir8 : null; // pas de prévision pour cette date : vent inconnu (aucune pénalité, rien d'affiché)
 }
 function windDataForLeg(name, day, category){
   const period = category === 'Pause' ? 'morning' : 'afternoon';
   return (windCache[name] && windCache[name][day] && windCache[name][day][period]) || null;
 }
+let windStatus = 'loading', _windToken = 0;
+const WIND_STATUS_TXT = {
+  loading: 'vent : chargement…',
+  forecast: 'vent : prévision Open-Meteo',
+  partial: 'vent : prévision partielle (horizon J+16)',
+  archive: 'vent : historique observé (Open-Meteo)',
+  none: 'vent : pas encore de prévision (au-delà de J+16)',
+  error: 'vent : indisponible (hors-ligne ?)'
+};
 async function preloadWindForecast(){
+  const token = ++_windToken;
   const names = DATA.stops.filter(s => s.lat!=null).map(s => s.name); // toutes les escales : le planificateur peut en choisir n'importe laquelle
   if(!names.length) return;
   const lats = names.map(n=>stopByName[n].lat.toFixed(4)).join(',');
   const lons = names.map(n=>stopByName[n].lon.toFixed(4)).join(',');
-  const startD = fmtISODate(CRUISE_START);
   const maxDay = Math.max(...DATA.route.map(l=>l.day));
-  const endD = fmtISODate(new Date(CRUISE_START.getTime()+maxDay*86400000));
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}`
+  const start = new Date(CRUISE_START), end = new Date(CRUISE_START.getTime()+maxDay*86400000);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const horizon = new Date(today.getTime() + 15*86400000);   // Open-Meteo : prévision jusqu'à J+15
+  const archiveLimit = new Date(today.getTime() - 5*86400000); // archive disponible jusqu'à ~J-5
+  let base, endD = fmtISODate(end), status;
+  if(start > horizon){ windStatus = 'none'; render(); return; }
+  if(end < archiveLimit){ base = 'https://archive-api.open-meteo.com/v1/archive'; status = 'archive'; }
+  else { base = 'https://api.open-meteo.com/v1/forecast'; status = end > horizon ? 'partial' : 'forecast'; if(end > horizon) endD = fmtISODate(horizon); }
+  windStatus = 'loading';
+  const url = `${base}?latitude=${lats}&longitude=${lons}`
     + `&hourly=wind_speed_10m,wind_direction_10m&wind_speed_unit=kn&timezone=Europe%2FZagreb`
-    + `&start_date=${startD}&end_date=${endD}`;
+    + `&start_date=${fmtISODate(start)}&end_date=${endD}`;
   let data;
-  try { data = await (await fetch(url)).json(); } catch(e){ return; }
+  try { data = await (await fetch(url)).json(); } catch(e){ if(token===_windToken){ windStatus = 'error'; render(); } return; }
+  if(token !== _windToken) return; // une autre date a été choisie entre-temps
   const results = Array.isArray(data) ? data : [data];
+  windStatus = results.some(r => r && r.hourly) ? status : 'error';
   names.forEach((name,i)=>{
     const loc = results[i];
     if(!loc || loc.error || !loc.hourly) return;
@@ -844,18 +922,23 @@ const mustKeepSet = new Set(); // R1 : vide au départ, modifiable via le bouton
 const discardSet = new Set(DATA.stops.filter(s => s.excluded).map(s => s.name));
 
 function computeCrewFit(name){
+  // Recalibré le 2026-11-11 :
+  //  - Atmosphere = PROFIL CIBLE : 1 → crique sauvage, 5 → mixte, 10 → vie de village.
+  //    On compare le caractère de l'escale (village − sauvage) à la cible ; score max quand ils coïncident.
+  //  - Swimming / Restaurant / Beaugossitude = IMPORTANCE : à 1 le critère est ignoré, à 10 il pèse fortement
+  //    (écart à la moyenne, donc une bonne escale gagne et une mauvaise perd des points).
   const owner = baseScoreOwner(name);
   if(!owner) return null;
   const wild = getScore(name,'wild'), village = getScore(name,'village'), swim = getScore(name,'swim'),
         restaurant = getScore(name,'restaurant'), beaugossitude = getScore(name,'beaugossitude');
   if(wild==null) return null; // Marina Agana etc : pas de scores
-  const a = crewPrefs.atmosphere; // 1=nature, 10=village life
-  const wWild = (10 - a) / 9, wVillage = (a - 1) / 9;
-  const atmosphereFit = wWild * wild + wVillage * village;
-  const swimW = crewPrefs.swimming / 10, restoW = crewPrefs.restaurant / 10, beauW = crewPrefs.beaugossitude / 10;
-  const totalW = 1 + swimW + restoW + beauW;
-  const fit = (atmosphereFit * 1 + swim * swimW + restaurant * restoW + beaugossitude * beauW) / totalW;
-  return Math.round(fit * 10) / 10;
+  const character = 1 + 9 * ((village - wild) + 9) / 18;          // 1 = 100 % sauvage … 10 = 100 % village
+  const atmScore = 10 - Math.abs(crewPrefs.atmosphere - character) * 10 / 9; // 0…10
+  const imp = v => (v - 1) / 9;                                    // curseur 1 → 0, 10 → 1
+  const term = (score, pref) => imp(pref) * ((score != null ? score : 5.5) - 5.5) * 0.65;
+  const fit = 1 + 0.6 * atmScore
+            + term(swim, crewPrefs.swimming) + term(restaurant, crewPrefs.restaurant) + term(beaugossitude, crewPrefs.beaugossitude);
+  return Math.round(Math.max(0, Math.min(10, fit)) * 10) / 10;
 }
 
 // ---- index helpers ----
@@ -929,6 +1012,7 @@ function dockNamesFor(stopName){
 }
 
 function isProtected(stopName, wind){
+  if(!wind) return true; // vent inconnu (date hors prévision) : on ne pénalise pas
   const docks = dockNamesFor(stopName);
   if(docks.length === 0) return true; // e.g. Marina Agana / no protection data needed
   let hasPort = false;
@@ -1246,7 +1330,9 @@ function windCellHtml(recName, day, category){
   if(!recName) return '<span style="color:var(--muted);">—</span>';
   const period = category === 'Pause' ? 'morning' : 'afternoon';
   const w = windCache[recName] && windCache[recName][day] && windCache[recName][day][period];
-  if(!w) return '<span class="wind-loading" style="color:var(--muted);font-size:11px;">…</span>';
+  if(!w) return windStatus === 'loading'
+    ? '<span class="wind-loading" style="color:var(--muted);font-size:11px;">…</span>'
+    : `<span style="color:var(--muted);font-size:11px;" title="${WIND_STATUS_TXT[windStatus]||''}">—</span>`;
   const color = BFT_COLOR[Math.min(w.bft,12)];
   const angle = DIR_ANGLE[w.dir8] + 180; // la flèche pointe dans la direction D'OÙ vient le vent -> vers l'observateur
   const periodLabel = period==='morning' ? 'Matin (jusqu\'à 13h)' : 'Après-midi/soir';
@@ -1791,6 +1877,9 @@ function addIslandLabels(map){
   map.createPane('islandLabels');
   const pane = map.getPane('islandLabels');
   pane.style.zIndex = 350; pane.style.pointerEvents = 'none';
+  // Taille proportionnelle à l'échelle de la carte : 42px au zoom 11, x2 par niveau de zoom (bornée 13–120px)
+  const resize = () => { const fs = Math.max(13, Math.min(120, 42 * Math.pow(2, map.getZoom() - 11))); pane.style.setProperty('--isl-fs', fs.toFixed(0) + 'px'); };
+  map.on('zoomend', resize); map.whenReady(resize);
   ISLAND_NAME_POS.forEach(([name, lat, lon]) => {
     L.marker([lat, lon], { pane: 'islandLabels', interactive: false, keyboard: false,
       icon: L.divIcon({ className: 'island-label', html: `<span>${name}</span>`, iconSize: [0, 0] }) }).addTo(map);
@@ -2160,8 +2249,10 @@ function calcArrival(dep, navH){
   const tot=parseInt(p[0])*60+parseInt(p[1])+Math.round(navH*60);
   return String(Math.floor(tot/60)%24).padStart(2,"0")+":"+String(tot%60).padStart(2,"0");
 }
+const dayDepartureUser = {}; // départs saisis à la main : seuls conservés quand l'itinéraire change
 function onDayDepartChange(day,v,targetAid){
   dayDeparture['day'+day]=v;
+  dayDepartureUser['day'+day]=true;
   const el=document.getElementById(targetAid);
   if(el) el.textContent=calcArrival(v,parseFloat(el.dataset.nt));
 }
@@ -2900,6 +2991,7 @@ function effectiveDayTarget(){ return Math.min(dayTargetNM(), maxNavNM); }
 function clearPlanState(){
   [manualOverrides, lastComputed, actualOverrides].forEach(o => Object.keys(o).forEach(k => delete o[k]));
   Object.keys(dayDeparture).forEach(k => delete dayDeparture[k]);
+  Object.keys(dayDepartureUser).forEach(k => delete dayDepartureUser[k]);
   dayFilter = null;
 }
 function activatePlanner(){
@@ -2977,7 +3069,7 @@ function generatePlan(){
       if(!forced && (P.name === a || P.name === b)) return;
       const d1 = D(a, P.name), d2 = D(P.name, b), dd = d1 + d2;
       if(!forced && !relax && dd > cap) return; // plafond dur par jour
-      let c = 0.5 * Math.abs(dd - T) - 1.0 * Q[P.name].q;
+      let c = 0.5 * Math.abs(dd - T) - 1.6 * Q[P.name].q;
       if(d1 < 1 || d2 < 1) c += 3; // pause collée à l'escale de nuit : peu d'intérêt
       c += 0.3 * Math.abs(d1 - d2); // équilibre matin / après-midi
       if(!isProtected(P.name, windForLeg(P.name, day, 'Pause'))) c += 4;
@@ -3005,7 +3097,7 @@ function generatePlan(){
           const isl = new Set(st.isl);
           if(!isLast){
             if(!relax && !forcedN && D(N.name, base) > cap * remaining) return; // retour à la base impossible
-            c -= 1.5 * Q[N.name].q;
+            c -= 2.5 * Q[N.name].q;
             if(!isProtected(N.name, windForLeg(N.name, d, 'Night'))) c += 12;
             noWater = hasWater(N.name) ? 0 : noWater + 1;
             if(noWater >= waterDays) c += 40;
@@ -3038,7 +3130,7 @@ function generatePlan(){
     const q = Q[name], w = windForLeg(name, day, cat), prot = isProtected(name, w);
     const parts = [`profil équipage ${q.fit != null ? q.fit : '—'}/10`];
     if(stopByName[name].rating != null) parts.push(`Navily ${stopByName[name].rating}`);
-    parts.push(prot ? `abri vent ${w} ✓` : `<span class="warn">⚠ exposé vent ${w}</span>`);
+    parts.push(!w ? 'vent n/d' : (prot ? `abri vent ${w} ✓` : `<span class="warn">⚠ exposé vent ${w}</span>`));
     if(cat === 'Night') parts.push(`eau ${({Y:'✓', N:'✗'})[stopByName[name].water] || '?'}`);
     if(mustKeepSet.has(name)) parts.push('📌');
     return parts.join(' · ');
@@ -3117,6 +3209,8 @@ function resolveRoute(){
 }
 
 function render(){
+  // départs par défaut (arrivée + 2h) recalculés à chaque rendu ; on ne garde que ceux saisis à la main
+  Object.keys(dayDeparture).forEach(k => { if(!dayDepartureUser[k]) delete dayDeparture[k]; });
   resolveRoute();
 
   const tbody = document.getElementById('tableBody');
@@ -3262,19 +3356,19 @@ function render(){
 
     // Cellule JOUR+DATE fusionnée (empilée), rowspan=dayCount sur le premier leg, absente sur les suivants
     const dayDateCells = isBase
-      ? `<td class="day-cell"><span class="day-badge">J${leg.day}</span><div class="day-date-sub">${formatDateShort(dateForDay(leg.day))}</div></td>`
+      ? `<td class="day-cell fz fz-day"><span class="day-badge">J${leg.day}</span><div class="day-date-sub">${formatDateShort(dateForDay(leg.day))}</div></td>`
       : isFirstOfDay
-        ? `<td class="day-cell" rowspan="${dayCount}"><span class="day-badge" style="${(elapsed||leg.locked)?'background:#3fae6a;':''}">J${leg.day}</span><div class="day-date-sub">${formatDateShort(dateForDay(leg.day))}</div></td>`
+        ? `<td class="day-cell fz fz-day" rowspan="${dayCount}"><span class="day-badge" style="${(elapsed||leg.locked)?'background:#3fae6a;':''}">J${leg.day}</span><div class="day-date-sub">${formatDateShort(dateForDay(leg.day))}</div></td>`
         : '';  // cellule omise car déjà en rowspan
 
     tr.innerHTML = `
       ${dayDateCells}
-      <td style="text-align:center;">${windCellHtml(recName, leg.day, leg.category)}</td>
-      <td><span class="type-pill ${catClass}">${leg.category}</span></td>
+      <td class="fz fz-wind" style="text-align:center;">${windCellHtml(recName, leg.day, leg.category)}</td>
+      <td class="fz fz-type"><span class="type-pill ${catClass}">${leg.category}</span></td>
+      <td class="fz fz-rec" id="rec${leg.day}-${catClass}">${recommendedCell}</td>
       <td>
         <div class="${modified?'strike':''}">${refName}${island? ' <span class="stop-island">('+island+')</span>':''}</div>
       </td>
-      <td id="rec${leg.day}-${catClass}">${recommendedCell}</td>
       <td class="reason">${reasonHtml}</td>
       <td>${dist!=null? '<span class="dist">'+dist.toFixed(0)+'</span> <span class="unit">NM</span>'+(exceedsMaxNav?' <span title="Dépasse Max Nav\' ('+maxNavNM+' NM)" style="color:var(--danger);font-weight:700;">⚠</span>':'') : '—'}</td>
       <td>${navTime!=null? '<span class="dist">'+formatDuration(navTime)+'</span>'+(imbalanced?' <span title="Hors cible ~2h" style="color:var(--amber);">⚖</span>':'') : '—'}</td>
@@ -3337,7 +3431,7 @@ function render(){
   const startD = formatDateLong(dateForDay(0));
   const endD = formatDateLong(dateForDay(days));
   document.getElementById('routeSub').textContent =
-    `Navigation dashboard · ${startD} → ${endD} · ${resolvedRoute.length} étapes · vent auto (Open-Meteo)`;
+    `Navigation dashboard · ${startD} → ${endD} · ${resolvedRoute.length} étapes · ${WIND_STATUS_TXT[windStatus] || ''}`;
   refreshActiveMap();
   buildDaySelector();
   buildCheckpointSelect();
@@ -3488,6 +3582,7 @@ function renderArchiveMap(){
   setTimeout(() => { archMap.invalidateSize(); if(!archLayers.length) drawArchiveLayers(); }, 50);
 }
 
+document.getElementById('cruiseStartInput').value = fmtISODate(CRUISE_START);
 buildCheckpointSelect();
 render();
 renderArchiveTable();
