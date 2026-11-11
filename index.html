@@ -319,6 +319,31 @@
   .btn-export{padding:3px 9px;font-size:11px;border-radius:5px;border:1px solid #dde6ed;background:#fff;color:#5d7a90;cursor:pointer;}
   .btn-export:hover{background:#f0f4f7;color:#16324a;}
   .btn-export:hover{background:#dcfce7;}
+
+  /* Barre d'onglets en deux sections : archive figée + nouvelle navigation */
+  .tab-bar{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:14px;align-items:stretch;}
+  .tab-group{display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:6px 8px;border:1px solid var(--border);border-radius:11px;background:#f7fafc;}
+  .tab-group.archive{background:#fbf6ea;border-color:#e3d3a8;}
+  .tab-group-label{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-right:2px;}
+  .tab-group.archive .tab-group-label{color:#8a6a35;}
+  .tab-group.archive .tab-btn.active{background:#8a6a35;border-color:#8a6a35;}
+  .archive-badge{font-size:10.5px;font-weight:700;background:#8a6a35;color:#fff;padding:3px 9px;border-radius:12px;text-transform:none;letter-spacing:0;}
+  .archive-note{font-size:11.5px;color:var(--muted);margin-bottom:12px;line-height:1.55;}
+  .arch-legend{display:flex;gap:10px;flex-wrap:wrap;font-size:11px;margin-bottom:10px;}
+  .arch-legend span{display:inline-flex;align-items:center;gap:5px;}
+  .arch-legend i{display:inline-block;width:18px;height:4px;border-radius:2px;}
+  details.arch-avis summary{cursor:pointer;font-size:11px;color:var(--teal);font-weight:700;}
+  details.arch-avis div{font-size:11.5px;line-height:1.5;margin-top:4px;max-width:280px;}
+  #leftCol.archive-mode .card:not(.archive-hint){opacity:.45;pointer-events:none;}
+  #leftCol .archive-hint{display:none;background:#fbf6ea;border-color:#e3d3a8;font-size:12px;line-height:1.5;color:#5a3c1a;}
+  #leftCol.archive-mode .archive-hint{display:block;}
+  /* Noms d'îles : 4x la taille des étiquettes d'escale (10.5px), taille écran constante quel que soit le zoom */
+  .island-label{background:none;border:none;}
+  .island-label span{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;font-family:Georgia,"Times New Roman",serif;font-style:italic;font-weight:700;font-size:42px;letter-spacing:.06em;color:rgba(12,45,73,.42);text-shadow:0 0 4px rgba(255,255,255,.95),0 0 10px rgba(255,255,255,.8);pointer-events:none;}
+  .planner-status{font-size:11.5px;line-height:1.5;border-radius:8px;padding:8px 10px;margin-bottom:12px;background:#f1f6fa;border:1px solid var(--border);color:var(--text);}
+  .planner-status.on{background:#eef7f1;border-color:#b7dcc4;}
+  .planner-status button{margin-top:6px;font-size:11px;padding:4px 9px;border-radius:6px;border:1px solid var(--border);background:white;cursor:pointer;}
+  .sail-hint{font-size:11px;color:var(--teal);font-weight:700;margin-top:3px;}
 </style>
 <div id="iconTooltipWater" class="icon-tooltip icon-tooltip-water"></div>
 <div id="iconTooltipAtm"   class="icon-tooltip icon-tooltip-atm"></div>
@@ -417,22 +442,25 @@
 
 <div class="layout">
   <!-- LEFT -->
-  <div style="display:flex;flex-direction:column;gap:20px;">
+  <div id="leftCol" style="display:flex;flex-direction:column;gap:20px;">
+    <div class="card archive-hint">🔒 <b>Vacances été 2026</b> est une archive en lecture seule. Les réglages ci-dessous pilotent uniquement la <b>nouvelle navigation</b>.</div>
     <div class="card">
       <h2><span class="ico">👥</span> CREW PREFERENCES</h2>
+      <div class="planner-status" id="plannerStatus"></div>
       <div class="pref-row">
-        <div class="pref-head"><span class="pref-name">Sailing</span><span class="pref-val" id="val-sailing">6/10</span></div>
-        <input type="range" min="1" max="10" value="6" id="pref-sailing" oninput="setCrewPref('sailing', this.value)">
+        <div class="pref-head"><span class="pref-name">Sailing</span><span class="pref-val" id="val-sailing">8/10</span></div>
+        <input type="range" min="1" max="10" value="8" id="pref-sailing" oninput="setCrewPref('sailing', this.value)">
         <div class="pref-labels"><span>moins de nav</span><span>plus de nav</span></div>
+        <div class="sail-hint" id="sailTargetHint"></div>
       </div>
       <div class="pref-row">
-        <div class="pref-head"><span class="pref-name">Max Nav' <span style="font-weight:400;color:var(--muted);">(plafond dur)</span></span><span class="pref-val" id="val-maxnav">25 NM</span></div>
-        <input type="range" min="10" max="80" step="1" value="25" id="pref-maxnav" oninput="setMaxNav(this.value)">
+        <div class="pref-head"><span class="pref-name">Max Nav' <span style="font-weight:400;color:var(--muted);">(plafond dur / jour)</span></span><span class="pref-val" id="val-maxnav">58 NM</span></div>
+        <input type="range" min="10" max="80" step="1" value="58" id="pref-maxnav" oninput="setMaxNav(this.value)">
         <div class="pref-labels"><span>10 NM</span><span>80 NM</span></div>
       </div>
       <div class="pref-row">
-        <div class="pref-head"><span class="pref-name">Atmosphere</span><span class="pref-val" id="val-atmosphere">4/10</span></div>
-        <input type="range" min="1" max="10" value="4" id="pref-atmosphere" oninput="setCrewPref('atmosphere', this.value)">
+        <div class="pref-head"><span class="pref-name">Atmosphere</span><span class="pref-val" id="val-atmosphere">5/10</span></div>
+        <input type="range" min="1" max="10" value="5" id="pref-atmosphere" oninput="setCrewPref('atmosphere', this.value)">
         <div class="pref-labels"><span>nature sauvage</span><span>vie de village</span></div>
       </div>
       <div class="pref-row">
@@ -480,24 +508,31 @@
     <div class="card">
       <h2><span class="ico">ℹ</span> COMMENT ÇA MARCHE</h2>
       <div class="legend">
-        <p><span class="dot" style="background:#3fae6a;"></span><b>Écoulé</b> — étape déjà passée avant ton point de recalcul. Tu peux corriger l'escale réellement faite via le menu déroulant si elle diffère de la référence (le reste de la route se recalcule dessus).</p>
-        <p><span class="dot" style="background:var(--kept-dot);"></span><b>Conservé</b> — l'escale a au moins un poste protégé du vent choisi (un port/marina compte comme toujours protégé).</p>
-        <p><span class="dot" style="background:var(--modified-dot);"></span><b>Modifié</b> — mouillage exposé, déjà utilisé, ou écarté (🚫) : l'app propose l'escale protégée la plus proche de la distance cible (réglée par le curseur Sailing), qui correspond le mieux aux préférences d'équipage, jamais une escale déjà utilisée.</p>
-        <p><b>⚖</b> signale un temps de nav. très éloigné de la cible 2h (moins d'1h ou plus de 3h).</p>
-        <p><b>📌 Must keep</b> / <b>🚫 Discard</b> (colonne Statut) — clique pour marquer une escale à toujours garder ou à ne jamais proposer.</p>
-        <p>Distances à vol d'oiseau entre coordonnées GPS ("4. Route Segment" pas encore renseignée) — vitesse de croisière : 6 nds.</p>
-        <p><b>Max Nav'</b> (curseur ci-dessus) est un plafond dur : le moteur n'envisage jamais une traversée plus longue, quitte à ne proposer aucune alternative.</p>
-        <p>Tu peux <b>forcer manuellement</b> n'importe quelle escale (à venir) via le menu déroulant ; un avertissement apparaît si ton choix ne respecte pas les critères calculables (vent, distance, doublon, rôle).</p>
+        <p><b>Pré-rempli</b> — à l'ouverture, la nouvelle navigation reprend le trajet de l'été 2026. Dès que tu bouges un réglage (curseurs, 📌, 🚫, notes, rôles), le <b>planificateur</b> construit une nouvelle boucle au départ et au retour de Marina Agana.</p>
+        <p><b>Sailing</b> fixe la distance cible par jour (1 → ~8 NM, 5 → ~28 NM, 8 → ~43 NM, 10 → ~53 NM). Plus il est haut, plus le planificateur va loin (Vis, Biševo, Šćedro…) et privilégie les îles pas encore visitées et les escales bien notées par les navigateurs (Navily).</p>
+        <p><b>Max Nav'</b> est un plafond dur <b>par jour</b> (Nuit → Pause → Nuit) : aucune journée générée ne le dépasse. S'il est sous la cible Sailing, c'est lui qui limite.</p>
+        <p><b>Atmosphere / Swimming / Restaurant / Beaugossitude</b> pondèrent le choix des escales. Les nuits exposées au vent prévu (Open-Meteo) sont pénalisées ; 💧 impose une escale avec eau au moins tous les N jours.</p>
+        <p><b>📌 Must keep</b> force une escale dans la boucle ; <b>🚫 Discard</b> l'exclut. Tu peux aussi <b>forcer</b> une escale via le menu déroulant ou en la glissant sur la carte (mode ✏️) : le reste de la boucle se recalcule autour.</p>
+        <p><b>⚖</b> signale un tronçon très éloigné de la cible (moins de 40 % ou plus de 180 % de la demi-journée cible).</p>
+        <p>Distances mesurées le long de la route dessinée sur la carte (contournement des îles, ou ta route ajustée en mode ✏️) — vitesse de croisière : 6 nds.</p>
       </div>
     </div>
   </div>
 
   <!-- RIGHT -->
   <div class="card">
-    <div style="display:flex;gap:8px;margin-bottom:14px;">
-      <button class="tab-btn active" id="tabBtnItin" onclick="switchTab('itin')">🧭 Itinéraire</button>
-      <button class="tab-btn" id="tabBtnEscales" onclick="switchTab('escales')">📋 Toutes les escales</button>
-      <button class="tab-btn" id="tabBtnCarte" onclick="switchTab('carte')">🗺️ Carte</button>
+    <div class="tab-bar">
+      <div class="tab-group">
+        <span class="tab-group-label">⛵ Nouvelle navigation</span>
+        <button class="tab-btn" id="tabBtnCarte" onclick="switchTab('carte')">🗺️ Carte</button>
+        <button class="tab-btn active" id="tabBtnItin" onclick="switchTab('itin')">🧭 Itinéraire</button>
+        <button class="tab-btn" id="tabBtnEscales" onclick="switchTab('escales')">📋 Toutes les escales</button>
+      </div>
+      <div class="tab-group archive" style="margin-left:auto;">
+        <span class="tab-group-label">🏖 Vacances été 2026</span>
+        <button class="tab-btn" id="tabBtnArchCarte" onclick="switchTab('archCarte')">🗺️ Carte</button>
+        <button class="tab-btn" id="tabBtnArchItin" onclick="switchTab('archItin')">🧭 Itinéraire</button>
+      </div>
     </div>
 
     <div id="panelItin">
@@ -511,15 +546,14 @@
     </h2>
     <!-- Barre de sauvegarde itinéraires -->
     <div class="itin-save-bar">
-      <button class="btn-save" onclick="saveItinerary()">💾 Sauvegarder cet itinéraire</button>
       <button class="btn-export" onclick="exportToCalendar()">📅 Mettre à jour l'agenda (.ics)</button>
       <button class="btn-export" onclick="exportToExcel()">📊 Exporter Excel (.xlsx)</button>
       <button class="btn-export" onclick="exportDataJSON()">🗂 Exporter données (.json)</button>
       <button class="btn-export" onclick="exportRoutesJSON()">🧭 Exporter routes (.json)</button>
       <button class="btn-export" onclick="document.getElementById('importRoutesInput').click()">📥 Importer routes (.json)</button>
       <input type="file" id="importRoutesInput" accept=".json" style="display:none;" onchange="importRoutesJSON(this.files[0]); this.value='';">
-      <span style="font-size:11px;color:var(--muted);" id="itinSaveHint">Comparez différentes versions de l'itinéraire</span>
-      <div id="itinBtnList" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+      <span style="font-size:11px;color:var(--muted);" id="itinSaveHint">Exports de la nouvelle navigation</span>
+      
     </div>
     <div id="mustKeepBanner"></div>
     <div class="table-wrap">
@@ -639,6 +673,45 @@
       </div>
       <div id="mapDetail" style="margin-top:12px;"></div>
     </div>
+
+    <div id="panelArchItin" style="display:none;">
+      <h2 style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <span style="display:flex;align-items:center;gap:8px;"><span class="ico">🧭</span> ITINÉRAIRE RÉALISÉ — VACANCES ÉTÉ 2026</span>
+        <span class="archive-badge">🔒 Archive — lecture seule</span>
+      </h2>
+      <div class="archive-note" id="archItinNote"></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>JOUR</th><th>TYPE</th><th>ESCALE</th><th>DISTANCE</th><th>TEMPS NAV.</th>
+              <th>🕐 DÉPART</th><th>🏁 ARRIVÉE</th><th title="Eau">💧</th><th title="Atmosphère">🌅</th>
+              <th title="Amarrage">🛟 AMARRAGE</th><th>CONTACT</th><th>TÉLÉPHONE</th><th>AVIS</th>
+            </tr>
+          </thead>
+          <tbody id="archBody"></tbody>
+          <tfoot>
+            <tr style="border-top:2px solid var(--navy);font-weight:700;">
+              <td colspan="3" style="padding:10px;text-align:right;color:var(--navy);">TOTAL</td>
+              <td id="archTotalDist" style="padding:10px;"></td>
+              <td id="archTotalTime" style="padding:10px;"></td>
+              <td colspan="8"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <div id="panelArchCarte" style="display:none;">
+      <h2 style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <span style="display:flex;align-items:center;gap:8px;"><span class="ico">🗺️</span> CARTE DU TRAJET RÉALISÉ — VACANCES ÉTÉ 2026</span>
+        <span class="archive-badge">🔒 Archive — lecture seule</span>
+      </h2>
+      <div class="archive-note">Routes telles que naviguées (waypoints figés). Survole un tronçon pour sa distance.</div>
+      <div id="archDaySelector" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;align-items:center;"></div>
+      <div id="archMapDiv" style="height:560px;border-radius:12px;border:1px solid var(--border);overflow:hidden;"></div>
+      <div id="archMapNote" style="font-size:11.5px;color:var(--muted);margin-top:8px;"></div>
+    </div>
   </div>
 </div>
 
@@ -691,7 +764,7 @@ function windDataForLeg(name, day, category){
   return (windCache[name] && windCache[name][day] && windCache[name][day][period]) || null;
 }
 async function preloadWindForecast(){
-  const names = [...new Set(DATA.route.map(l=>l.stop))].filter(n => stopByName[n] && stopByName[n].lat!=null);
+  const names = DATA.stops.filter(s => s.lat!=null).map(s => s.name); // toutes les escales : le planificateur peut en choisir n'importe laquelle
   if(!names.length) return;
   const lats = names.map(n=>stopByName[n].lat.toFixed(4)).join(',');
   const lons = names.map(n=>stopByName[n].lon.toFixed(4)).join(',');
@@ -727,8 +800,8 @@ async function preloadWindForecast(){
   render();
 }
 let checkpointSeq = 2; // seq from which recalculation starts; everything before is "elapsed" (J1 = 26/07, déjà fait, escale fixée à Marina Agana)
-let crewPrefs = { sailing: 6, atmosphere: 4, swimming: 7, restaurant: 5, beaugossitude: 5 }; // 1-10, défauts repris de la maquette
-let maxNavNM = 25; // DEF1 : plafond dur, jamais dépassé par le moteur
+let crewPrefs = { sailing: 8, atmosphere: 5, swimming: 7, restaurant: 5, beaugossitude: 5 }; // 1-10, défauts repris de la maquette
+let maxNavNM = 58; // DEF1 : plafond dur, jamais dépassé par le moteur
 let resolvedRoute = []; // DEF1 (carte interactive) : dernier résultat calculé par render(), consommé par renderMap()
 const actualOverrides = {}; // seq -> nom d'escale réellement faite (R1, jours écoulés)
 const manualOverrides = {}; // seq -> nom d'escale forcée manuellement (DEF4, jours à venir)
@@ -766,7 +839,8 @@ function getScore(name, field){
   return owner && stopByName[owner] ? stopByName[owner][field] : null;
 }
 function getTargetLegNM(){ return Math.round(4 + crewPrefs.sailing * 1.5); } // DEF1 x DEF2 : "Sailing" pilote la distance cible par leg
-const mustKeepSet = new Set(DATA.stops.filter(s => s.must_keep).map(s => s.name)); // R1 : pré-rempli depuis DATA, modifiable ensuite via le bouton 📌
+DATA.stops.forEach(s => { s.must_keep = false; }); // 2026-11-11 : tous les Must keep retirés
+const mustKeepSet = new Set(); // R1 : vide au départ, modifiable via le bouton 📌
 const discardSet = new Set(DATA.stops.filter(s => s.excluded).map(s => s.name));
 
 function computeCrewFit(name){
@@ -1069,14 +1143,18 @@ function findAlternative(originalName, category, wind, usedNames, fromCoord){
   return {stop: candidates[0], crossIsland};
 }
 
+let _checkpointListener = false;
 function buildCheckpointSelect(){
   const sel = document.getElementById('checkpointSelect');
-  sel.innerHTML = DATA.route.map(leg => {
+  const legs = resolvedRoute.length ? resolvedRoute.map(r => ({...r.leg, stop: r.recName})) : DATA.route;
+  sel.innerHTML = legs.map(leg => {
     const d = formatDateShort(dateForDay(leg.day));
     const label = `J${leg.day} ${leg.category} – ${leg.stop} (${d})`;
     return `<option value="${leg.seq}">${label}</option>`;
   }).join('');
   sel.value = checkpointSeq;
+  if(_checkpointListener) return;
+  _checkpointListener = true;
   sel.addEventListener('change', e => {
     checkpointSeq = parseInt(e.target.value, 10);
     render();
@@ -1117,12 +1195,14 @@ function setManualOverride(seq, value){
 }
 
 function toggleMustKeep(name){
+  activatePlanner();
   if(mustKeepSet.has(name)){ mustKeepSet.delete(name); }
   else { mustKeepSet.add(name); discardSet.delete(name); }
   render();
   renderEscalesTab();
 }
 function toggleDiscard(name){
+  activatePlanner();
   // Trouver le nom générique parent si c'est un nom de ponton (ex: 'Budikovac Blue lagoon' → 'Budikovac')
   const parent = baseScoreOwner(name);
   const generic = (parent && parent !== name) ? parent : null;
@@ -1276,6 +1356,7 @@ function showIconTooltip(evt, text){ showWaterTip(evt, text); }
 function hideIconTooltip(){ hideTips(); }
 
 function setCrewPref(key, value){
+  activatePlanner();
   crewPrefs[key] = parseInt(value, 10);
   document.getElementById('val-'+key).textContent = crewPrefs[key]+'/10';
   render();
@@ -1284,13 +1365,15 @@ function setCrewPref(key, value){
 
 let waterDays = 2; // contrainte : eau disponible au moins tous les N jours
 function setWaterDays(v){
+  activatePlanner();
   waterDays = parseInt(v, 10);
   document.getElementById('val-waterdays').textContent = v;
-  document.getElementById('waterDaysLabel').textContent = v;
+  const _wl = document.getElementById('waterDaysLabel'); if(_wl) _wl.textContent = v;
   render();
 }
 
 function setMaxNav(value){
+  activatePlanner();
   maxNavNM = parseInt(value, 10);
   document.getElementById('val-maxnav').textContent = maxNavNM+' NM';
   render();
@@ -1695,6 +1778,25 @@ function bearingDeg(lat1, lon1, lat2, lon2){
   return (toDeg(Math.atan2(y, x)) + 360) % 360;
 }
 
+
+// Noms d'îles en grand sur les cartes Leaflet — divIcon = taille écran fixe, affichés à tous les niveaux de zoom
+const ISLAND_NAME_POS = [
+  ['Šolta', 43.373, 16.290], ['Brač', 43.318, 16.620], ['Hvar', 43.132, 16.860], ['Vis', 43.045, 16.150],
+  ['Čiovo', 43.497, 16.270], ['Drvenik', 43.447, 16.140], ['Pakleni', 43.150, 16.350], ['Šćedro', 43.086, 16.700],
+  ['Biševo', 43.060, 15.990]
+];
+function addIslandLabels(map){
+  if(!map || map._islandLabelsAdded) return;
+  map._islandLabelsAdded = true;
+  map.createPane('islandLabels');
+  const pane = map.getPane('islandLabels');
+  pane.style.zIndex = 350; pane.style.pointerEvents = 'none';
+  ISLAND_NAME_POS.forEach(([name, lat, lon]) => {
+    L.marker([lat, lon], { pane: 'islandLabels', interactive: false, keyboard: false,
+      icon: L.divIcon({ className: 'island-label', html: `<span>${name}</span>`, iconSize: [0, 0] }) }).addTo(map);
+  });
+}
+
 function initMapSystem(){
   if(leafletInitTried){ refreshActiveMap(); return; }
   leafletInitTried = true;
@@ -1716,6 +1818,7 @@ function attemptLeaflet(){
       leafletMap = L.map('leafletMapDiv', { scrollWheelZoom: true });
       leafletMap.setView([ (latMin+latMax)/2, (lonMin+lonMax)/2 ], 11);
       leafletMap.on('zoomend', updateOffRouteLabels);
+      addIslandLabels(leafletMap);
 
       // NB (2026-10-30) : tile.openstreetmap.org bloque désormais les requêtes directes de l'app
       // (politique d'usage OSM, osm.wiki/Blocked). CARTO exige une clé API sur ses tuiles raster ;
@@ -1806,11 +1909,11 @@ function buildDaySelector(){
     <button class="day-sel-btn ${dayFilter===null?'active':''}" id="dsel-all" onclick="setDayFilter(null)">Tous</button>`;
   days.forEach(d => {
     // find the night stop name for this day for the label
-    const nightR = resolvedRoute.find(r=>r.leg.day===d && r.leg.category==='Night');
-    const nightName = nightR ? nightR.recName : '';
+    const nightR = resolvedRoute.find(r=>r.leg.day===d && r.leg.category==='Night') || resolvedRoute.find(r=>r.leg.day===d && r.leg.category==='Base');
+    const nightName = nightR ? nightR.recName.replace(/\s*\(.*\)$/,'') : '';
     const color = dayColor(d);
     const isActive = dayFilter===d;
-    sel.innerHTML += `<button class="day-sel-btn" style="background:${isActive?color:color+'22'};color:${isActive?'white':color};border-color:${color};" onclick="setDayFilter(${d})">J${d}${nightName?' · '+nightName.split(' ')[0]:''}</button>`;
+    sel.innerHTML += `<button class="day-sel-btn" style="background:${isActive?color:color+'22'};color:${isActive?'white':color};border-color:${color};" onclick="setDayFilter(${d})">J${d}${nightName?' · '+nightName:''}</button>`;
   });
 }
 
@@ -1848,65 +1951,11 @@ function leafletIcon(isNight, isBase, mk, big, label){
 }
 
 /* ─── Route editor (même mécanisme que croatia_polygon_editor) ─── */
-// ─── Sauvegarde itinéraires ────────────────────────────────────
-const savedItineraries = {};   // {1: {route, edits, wind, label}, ...}
-let itinCounter = 0;
-let activeItinId = null;
-
-function saveItinerary(){
-  if(!resolvedRoute.length){ alert("Aucun itinéraire calculé à sauvegarder."); return; }
-  itinCounter++;
-  const id = itinCounter;
-  // Sauvegarder l'état complet
-  savedItineraries[id] = {
-    route:  JSON.parse(JSON.stringify(resolvedRoute)),
-    edits:  JSON.parse(JSON.stringify(routeEdits)),
-    wind:   currentWind,
-    label:  `Itinéraire #${id} · ${new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}`
-  };
-  activeItinId = id;
-  renderItinButtons();
-  document.getElementById("itinSaveHint").textContent = `Itinéraire ${id} sauvegardé ✓`;
-  setTimeout(()=>{
-    const hint = document.getElementById("itinSaveHint");
-    if(hint) hint.textContent = "Comparez différentes versions de l'itinéraire";
-  }, 2500);
-}
-
-function loadItinerary(id){
-  const s = savedItineraries[id];
-  if(!s) return;
-  // Restaurer l'état sans toucher à DATA ni aux scores
-  resolvedRoute = JSON.parse(JSON.stringify(s.route));
-  Object.keys(routeEdits).forEach(k => delete routeEdits[k]);
-  Object.assign(routeEdits, JSON.parse(JSON.stringify(s.edits)));
-  currentWind = s.wind;
-  activeItinId = id;
-  renderItinButtons();
-  render();
-  refreshActiveMap();
-}
-
-function deleteItinerary(id, e){
-  e.stopPropagation();
-  delete savedItineraries[id];
-  if(activeItinId === id) activeItinId = null;
-  renderItinButtons();
-}
-
 // ─── Export Google Calendar (.ics) ─────────────────────────────
 function legNavInfo(prevCoord, recName){
   const recStop = stopByName[recName];
   if(!prevCoord || !recStop || recStop.lat==null) return {dist:null, navTime:null};
-  const _rk = (prevCoord.name||"") + "|" + recName;
-  const _re = routeEdits[_rk];
-  let dist;
-  if(_re && _re.length > 1){
-    dist = 0;
-    for(let _ri=1;_ri<_re.length;_ri++) dist += haversineNM(_re[_ri-1][0],_re[_ri-1][1],_re[_ri][0],_re[_ri][1]);
-  } else {
-    dist = haversineNM(prevCoord.lat, prevCoord.lon, recStop.lat, recStop.lon);
-  }
+  const dist = legDistNM(prevCoord.name, recName);
   return {dist, navTime: dist!=null ? dist/6 : null};
 }
 
@@ -2104,21 +2153,6 @@ function importRoutesJSON(file){
   reader.readAsText(file);
 }
 
-function renderItinButtons(){
-  const el = document.getElementById("itinBtnList");
-  if(!el) return;
-  const ids = Object.keys(savedItineraries);
-  if(!ids.length){ el.innerHTML = ""; return; }
-  el.innerHTML = ids.map(id => {
-    const s = savedItineraries[id];
-    const active = id == activeItinId;
-    return `<button class="btn-itin${active?" active":""}" onclick="loadItinerary(${id})">`
-      + `📋 ${s.label}`
-      + `<span class="btn-del-itin" onclick="deleteItinerary(${id},event)" title="Supprimer">✕</span>`
-      + `</button>`;
-  }).join("");
-}
-
 const dayDeparture = {}; // "day{n}" -> "HH:MM", départ de l'escale de jour Jn vers l'escale de nuit Jn (Arrivée+2h par défaut, éditable)
 function calcArrival(dep, navH){
   if(!dep||navH==null) return "—";
@@ -2267,8 +2301,10 @@ function findNearestStopMarker(latlng, excludeName){
   });
   return best;
 }
+let _lastFitSig = null;
 function renderLeafletMarkers(){
   if(!leafletMap) return;
+  const _fitPts = [];
   leafletLayers.forEach(l => leafletMap.removeLayer(l));
   leafletLayers = [];
   const rr = resolvedRoute.length ? resolvedRoute : DATA.route.map(leg=>({leg, recName:leg.stop}));
@@ -2315,18 +2351,12 @@ function renderLeafletMarkers(){
     const curvePts = routeEdits[_key] || defaultPts;  // édits ou courbe par défaut
 
     // Distance sur le chemin réel (waypoints) si route modifiée, sinon ligne droite
-    let dist;
-    if(routeEdits[_key] && curvePts.length > 1){
-      dist = 0;
-      for(let _pi=1;_pi<curvePts.length;_pi++)
-        dist += haversineNM(curvePts[_pi-1][0],curvePts[_pi-1][1],curvePts[_pi][0],curvePts[_pi][1]);
-    } else {
-      dist = haversineNM(s.lat, s.lon, s2.lat, s2.lon);
-    }
+    const dist = legDistNM(s.name, s2.name);
     const timeStr = formatDuration(dist/6);
     const popupText = `${rr[i].recName} → ${rr[i+1].recName}<br><b>${dist.toFixed(0)} NM · ${timeStr}</b>`;
 
     const line = L.polyline(curvePts, { color: segColor, weight, opacity, dashArray: isActive ? null : '7,5' }).addTo(leafletMap);
+    curvePts.forEach(p => _fitPts.push(p));
     /* CLIC DROIT → popup distance/temps (remplace le clic gauche habituel) */
     line.on("contextmenu", function(e){
       L.popup()
@@ -2457,7 +2487,14 @@ function renderLeafletMarkers(){
       });
     }
     leafletLayers.push(marker);
+    _fitPts.push([s.lat, s.lon]);
   });
+  // Recadrage automatique quand l'itinéraire ou le jour affiché change (pas à chaque zoom manuel)
+  const _sig = String(dayFilter) + '|' + rr.map(r => r.recName).join(',');
+  if(_sig !== _lastFitSig && _fitPts.length){
+    _lastFitSig = _sig;
+    leafletMap.fitBounds(_fitPts, { padding: [40, 40], maxZoom: 13 });
+  }
 }
 
 function renderMap(){
@@ -2648,22 +2685,26 @@ function renderMapDetail(){
   `;
 }
 
+const TAB_DEFS = {
+  itin:      ['panelItin',      'tabBtnItin'],
+  escales:   ['panelEscales',   'tabBtnEscales'],
+  carte:     ['panelCarte',     'tabBtnCarte'],
+  archItin:  ['panelArchItin',  'tabBtnArchItin'],
+  archCarte: ['panelArchCarte', 'tabBtnArchCarte']
+};
 function switchTab(tab){
-  document.getElementById('panelItin').style.display = tab==='itin' ? '' : 'none';
-  document.getElementById('panelEscales').style.display = tab==='escales' ? '' : 'none';
-  document.getElementById('panelCarte').style.display = tab==='carte' ? '' : 'none';
-  document.getElementById('tabBtnItin').classList.toggle('active', tab==='itin');
-  document.getElementById('tabBtnEscales').classList.toggle('active', tab==='escales');
-  document.getElementById('tabBtnCarte').classList.toggle('active', tab==='carte');
+  Object.entries(TAB_DEFS).forEach(([k,[panel,btn]]) => {
+    document.getElementById(panel).style.display = k===tab ? '' : 'none';
+    document.getElementById(btn).classList.toggle('active', k===tab);
+  });
+  document.getElementById('leftCol').classList.toggle('archive-mode', tab.startsWith('arch'));
   if(tab==='escales') renderEscalesTab();
   if(tab==='carte'){
     initMapSystem();
-    // Fix bug "petit carré" : Leaflet perd ses dimensions quand le conteneur
-    // était display:none — on force un recalcul de taille à chaque visite
-    if(leafletMap){
-      setTimeout(function(){ leafletMap.invalidateSize(); }, 50);
-    }
+    // Leaflet perd ses dimensions quand le conteneur était display:none
+    if(leafletMap){ setTimeout(function(){ leafletMap.invalidateSize(); }, 50); }
   }
+  if(tab==='archCarte') renderArchiveMap();
 }
 
 function scoreSelectHtml(name, field){
@@ -2679,6 +2720,7 @@ function scoreSelectHtml(name, field){
 }
 
 function setScoreOverride(name, field, value){
+  activatePlanner();
   if(!scoreOverrides[name]) scoreOverrides[name] = {};
   scoreOverrides[name][field] = parseInt(value, 10);
   render();
@@ -2691,6 +2733,7 @@ function roleSelectHtml(name){
   return `<select onchange="setRoleOverride('${name.replace(/'/g,"\\'")}',this.value)" style="font-size:12px;padding:3px 4px;border-radius:5px;border:1px solid var(--border);width:78px;">${opts}</select>`;
 }
 function setRoleOverride(name, value){
+  activatePlanner();
   roleOverrides[name] = value;
   render();
   renderEscalesTab();
@@ -2817,13 +2860,207 @@ function renderEscalesTab(){
   }).join('');
 }
 
+// Distance d'une étape = longueur de la route réellement dessinée sur la carte :
+// route ajustée à la main (routeEdits) si elle existe, sinon courbe par défaut qui contourne Šolta/Brač/Hvar/Vis.
+// Utilisée partout (planificateur, tableau Itinéraire, carte, exports) pour rester cohérente.
+const _defaultPathCache = {};
+function defaultLegPath(a, b){
+  const key = a + '|' + b;
+  if(_defaultPathCache[key]) return _defaultPathCache[key];
+  const s1 = stopByName[a], s2 = stopByName[b];
+  if(!s1 || !s2 || s1.lat == null || s2.lat == null) return null;
+  if(a === b) return (_defaultPathCache[key] = [[s1.lat, s1.lon], [s2.lat, s2.lon]]);
+  const wp = seaWaypoints(geoToXY(s1.lat, s1.lon), geoToXY(s2.lat, s2.lon), islandBlobsGeo(), s1.island, s2.island);
+  return (_defaultPathCache[key] = wp.map(p => { const g = xyToGeo(p); return [g.lat, g.lon]; }));
+}
+function legPathPts(a, b){
+  const e = routeEdits[a + '|' + b];
+  return (e && e.length > 1) ? e : defaultLegPath(a, b);
+}
+function legDistNM(a, b){
+  const pts = legPathPts(a, b);
+  if(!pts) return null;
+  let d = 0;
+  for(let i = 1; i < pts.length; i++) d += haversineNM(pts[i-1][0], pts[i-1][1], pts[i][0], pts[i][1]);
+  return d;
+}
+
+// =====================================================================
+// PLANIFICATEUR « Nouvelle navigation » (2026-11-11)
+// Construit une boucle complète Marina Agana → … → Marina Agana à partir des réglages :
+//  - Sailing  → distance cible par jour (dayTargetNM) + goût de l'exploration (îles nouvelles)
+//  - Max Nav' → plafond dur par jour (Nuit → Pause → Nuit)
+//  - Atmosphere / Swimming / Restaurant / Beaugossitude → computeCrewFit
+//  - note Navily (rating), abri du vent prévu, eau tous les N jours, 📌 / 🚫, forçages manuels
+// Recherche en faisceau (beam search) sur les nuits, meilleure pause calculée pour chaque paire de nuits.
+// =====================================================================
+let plannerActive = false; // false = pré-rempli avec le trajet de l'été 2026 ; true = boucle générée
+function dayTargetNM(){ return Math.round(8 + (crewPrefs.sailing - 1) * 5); } // 1→8, 5→28, 8→43, 10→53 NM/jour
+function effectiveDayTarget(){ return Math.min(dayTargetNM(), maxNavNM); }
+function clearPlanState(){
+  [manualOverrides, lastComputed, actualOverrides].forEach(o => Object.keys(o).forEach(k => delete o[k]));
+  Object.keys(dayDeparture).forEach(k => delete dayDeparture[k]);
+  dayFilter = null;
+}
+function activatePlanner(){
+  if(plannerActive) return;
+  plannerActive = true;
+  clearPlanState(); // les forçages du pré-remplissage portent sur une autre structure de route
+}
+function resetToSummerPrefill(){
+  plannerActive = false;
+  clearPlanState();
+  render();
+}
+function updatePlannerStatus(){
+  const el = document.getElementById('plannerStatus');
+  const T = dayTargetNM(), eff = effectiveDayTarget();
+  const hint = document.getElementById('sailTargetHint');
+  if(hint) hint.textContent = `→ cible ≈ ${T} NM / jour (~${formatDuration(T/6)} de nav)` + (eff < T ? ` · limitée à ${eff} NM par Max Nav'` : '');
+  if(!el) return;
+  if(!plannerActive){
+    el.className = 'planner-status';
+    el.innerHTML = '📋 <b>Pré-rempli</b> avec le trajet de l\'été 2026. Bouge un réglage pour générer une nouvelle navigation.';
+  } else {
+    el.className = 'planner-status on';
+    el.innerHTML = `⚙ <b>Boucle générée</b> selon tes réglages : cible ${eff} NM / jour, plafond ${maxNavNM} NM / jour.`
+      + `<br><button onclick="resetToSummerPrefill()">↺ Revenir au trajet de l'été 2026</button>`;
+  }
+}
+function planRoute(){
+  if(!plannerActive) return DATA.route;
+  const g = generatePlan();
+  return g || DATA.route;
+}
+function generatePlan(){
+  const baseLeg = DATA.route.find(l => l.category === 'Base');
+  const base = baseLeg.stop, baseStop = stopByName[base];
+  const lastDay = Math.max(...DATA.route.map(l => l.day));
+  const lockedLegs = DATA.route.filter(l => l.locked);
+  const firstNavDay = lockedLegs.length ? Math.max(...lockedLegs.map(l => l.day)) + 1 : 1;
+
+  // Squelette : J0 base, jours verrouillés, puis [Pause, Nuit] par jour, dernier jour [Pause, Base]
+  const skel = [{seq:0, day:0, stop:base, category:'Base'}];
+  let seq = 1;
+  lockedLegs.forEach(l => skel.push({...l, seq: seq++}));
+  const dayLegs = {};
+  for(let d = firstNavDay; d <= lastDay; d++){
+    const p = {seq: seq++, day: d, category: 'Pause', stop: null};
+    const n = d === lastDay ? {seq: seq++, day: d, category: 'Base', stop: base}
+                            : {seq: seq++, day: d, category: 'Night', stop: null};
+    skel.push(p, n); dayLegs[d] = {p, n};
+  }
+
+  const T = effectiveDayTarget(), cap = maxNavNM, explore = crewPrefs.sailing / 10;
+  const fixedFor = s => manualOverrides[s] || (s < checkpointSeq ? (actualOverrides[s] || lastComputed[s] || null) : null);
+  const forcedNames = new Set(skel.map(l => fixedFor(l.seq)).filter(Boolean));
+  const usable = s => s.lat != null && s.name !== base && !isDiscarded(s.name) && !forcedNames.has(s.name);
+  const nightC = DATA.stops.filter(s => usable(s) && ['Night','Both'].includes(getRole(s.name)));
+  const pauseC = DATA.stops.filter(s => usable(s) && ['Pause','Both'].includes(getRole(s.name)));
+  const Q = {};
+  DATA.stops.forEach(s => {
+    const fit = computeCrewFit(s.name);
+    const r = s.rating != null ? s.rating : 3.5;
+    Q[s.name] = { fit, r, q: (fit != null ? fit : 5) + (r - 3.5) * 2 + (mustKeepSet.has(s.name) ? 12 : 0) };
+  });
+  const D = (a, b) => legDistNM(a, b);
+  const hasWater = n => { const w = stopByName[n] ? (stopByName[n].water || '?') : '?'; return w === 'Y' || w === '?'; };
+
+  const pauseCache = {};
+  function pauseOptions(a, b, day, relax){
+    const key = a + '|' + b + '|' + day + '|' + relax;
+    if(pauseCache[key]) return pauseCache[key];
+    const forced = fixedFor(dayLegs[day].p.seq);
+    const pool = forced && stopByName[forced] ? [stopByName[forced]] : pauseC;
+    const out = [];
+    pool.forEach(P => {
+      if(!forced && (P.name === a || P.name === b)) return;
+      const d1 = D(a, P.name), d2 = D(P.name, b), dd = d1 + d2;
+      if(!forced && !relax && dd > cap) return; // plafond dur par jour
+      let c = 0.5 * Math.abs(dd - T) - 1.0 * Q[P.name].q;
+      if(d1 < 1 || d2 < 1) c += 3; // pause collée à l'escale de nuit : peu d'intérêt
+      c += 0.3 * Math.abs(d1 - d2); // équilibre matin / après-midi
+      if(!isProtected(P.name, windForLeg(P.name, day, 'Pause'))) c += 4;
+      if(dd > cap) c += 60;
+      out.push({name: P.name, d1, d2, dd, c});
+    });
+    out.sort((x, y) => x.c - y.c);
+    return (pauseCache[key] = out.slice(0, 6));
+  }
+
+  let beam = [{cur: base, cost: 0, picks: {}, used: new Set([base]), noWater: 0, isl: new Set()}];
+  for(let d = firstNavDay; d <= lastDay; d++){
+    const isLast = d === lastDay, remaining = lastDay - d;
+    const forcedN = isLast ? null : fixedFor(dayLegs[d].n.seq);
+    const nPool = isLast ? [baseStop] : (forcedN && stopByName[forcedN] ? [stopByName[forcedN]] : nightC);
+    const expand = relax => {
+      const next = [];
+      beam.forEach(st => {
+        nPool.forEach(N => {
+          if(!isLast && !forcedN && st.used.has(N.name)) return;
+          if(N.name === st.cur && !forcedN) return;
+          const P = pauseOptions(st.cur, N.name, d, relax).find(o => !st.used.has(o.name) || fixedFor(dayLegs[d].p.seq));
+          if(!P) return;
+          let c = st.cost + P.c, noWater = st.noWater;
+          const isl = new Set(st.isl);
+          if(!isLast){
+            if(!relax && !forcedN && D(N.name, base) > cap * remaining) return; // retour à la base impossible
+            c -= 1.5 * Q[N.name].q;
+            if(!isProtected(N.name, windForLeg(N.name, d, 'Night'))) c += 12;
+            noWater = hasWater(N.name) ? 0 : noWater + 1;
+            if(noWater >= waterDays) c += 40;
+            const P_isl = stopByName[P.name].island;
+            if(N.island && !isl.has(N.island)) c -= 3 * explore;
+            if(N.island) isl.add(N.island);
+            if(P_isl) isl.add(P_isl);
+          }
+          const used = new Set(st.used); used.add(P.name); used.add(N.name);
+          next.push({cur: N.name, cost: c, picks: {...st.picks, [d]: {p: P.name, n: N.name, dd: P.dd}}, used, noWater, isl});
+        });
+      });
+      return next;
+    };
+    let next = expand(false);
+    if(!next.length) next = expand(true);
+    if(!next.length) return null;
+    next.sort((a, b) => a.cost - b.cost);
+    const perCur = {}, kept = [];
+    for(const st of next){
+      perCur[st.cur] = (perCur[st.cur] || 0) + 1;
+      if(perCur[st.cur] > 8) continue;
+      kept.push(st);
+      if(kept.length >= 200) break;
+    }
+    beam = kept;
+  }
+  const best = beam[0];
+  const why = (name, cat, day) => {
+    const q = Q[name], w = windForLeg(name, day, cat), prot = isProtected(name, w);
+    const parts = [`profil équipage ${q.fit != null ? q.fit : '—'}/10`];
+    if(stopByName[name].rating != null) parts.push(`Navily ${stopByName[name].rating}`);
+    parts.push(prot ? `abri vent ${w} ✓` : `<span class="warn">⚠ exposé vent ${w}</span>`);
+    if(cat === 'Night') parts.push(`eau ${({Y:'✓', N:'✗'})[stopByName[name].water] || '?'}`);
+    if(mustKeepSet.has(name)) parts.push('📌');
+    return parts.join(' · ');
+  };
+  for(let d = firstNavDay; d <= lastDay; d++){
+    const pk = best.picks[d], {p, n} = dayLegs[d];
+    p.stop = pk.p; if(d !== lastDay) n.stop = pk.n;
+    const over = pk.dd > cap ? ` <span class="warn">⚠ > Max Nav' ${cap} NM</span>` : '';
+    p.planReason = `⚙ Pause : ${why(pk.p, 'Pause', d)}`;
+    n.planReason = (d === lastDay ? '⚙ Retour base' : `⚙ Nuit : ${why(pk.n, 'Night', d)}`)
+      + ` · <b>journée ${pk.dd.toFixed(0)} NM</b> (cible ${T})${over}`;
+  }
+  return skel;
+}
+
 function resolveRoute(){
   // Phase 1 : résolution du moteur (vent, contraintes, alternatives) -> peuple resolvedRoute
   const usedNames = new Set();
   resolvedRoute = [];
   let prevCoord = null;
 
-  DATA.route.forEach(leg => {
+  planRoute().forEach(leg => {
     const refName = leg.stop;
     let elapsed = leg.seq < checkpointSeq;
     const origName = elapsed ? (actualOverrides[leg.seq] || lastComputed[leg.seq] || refName) : refName;
@@ -2840,16 +3077,7 @@ function resolveRoute(){
     } else if(elapsed){
       reason = actualDiffers ? 'actual' : 'elapsed';
     } else if(leg.category !== 'Base'){
-      const stopIsDiscarded = isDiscarded(origName);
-      const isMustKeep = mustKeepSet.has(origName);
-      const legWind = windForLeg(origName, leg.day, leg.category);
-      const protected_ = isProtected(origName, legWind);
-      const needsSubstitute = stopIsDiscarded || alreadyUsedBefore || (!protected_ && !isMustKeep);
-
-      if(needsSubstitute){
-        const alt = findAlternative(origName, leg.category, legWind, usedNames, prevCoord);
-        if(alt){ engineRecName = alt.stop.name; modified = true; crossIsland = alt.crossIsland; usedNames.add(engineRecName); }
-      } else if(!protected_ && isMustKeep){ reason = 'mustkeep-exposed'; }
+      // Le choix des escales est fait en amont par le planificateur (ou = trajet de l'été en mode pré-rempli)
       lastComputed[leg.seq] = engineRecName;
     }
 
@@ -2896,6 +3124,7 @@ function render(){
   const finalNames = [];
   const overCapLegs = [];
   let totalDist = 0, changes = 0;
+  const dayTotals = {};
   let prevCoord = null;
 
   // Rebuild usedNames from resolvedRoute for manual-override validation
@@ -2923,7 +3152,7 @@ function render(){
         ? `<span class="ok">Étape réellement faite (différente de la référence "${refName}").</span>`
         : '<span class="ok">Jour déjà écoulé — itinéraire de référence conservé.</span>';
     } else if(leg.category !== 'Base'){
-      if(forced && recName !== (r.engineRecName||recName)){
+      if(forced){
         const fStop = stopByName[recName];
         const issues = [];
         if(!fStop) issues.push("escale inconnue de la base");
@@ -2938,6 +3167,8 @@ function render(){
         reasonHtml = issues.length
           ? `<span class="warn">⚠ Forcé manuellement</span> — critère(s) non respecté(s) : ${issues.join(' ; ')}.`
           : `<span class="ok">✓ Forcé manuellement</span> — tous les critères calculables sont respectés.`;
+      } else if(leg.planReason && !forced){
+        reasonHtml = leg.planReason;
       } else if(modified){
         const exposedDirs = protectedDirsList(origName);
         const hasPortAlt = dockNamesFor(recName).some(d => protByName[d] && protByName[d].type==='Port');
@@ -2957,24 +3188,16 @@ function render(){
     const recStop = stopByName[recName] || stopByName[origName];
     let dist = null;
     if(prevCoord && recStop && recStop.lat!=null){
-      // Utiliser les waypoints édités si disponibles
-      const _rk = (prevCoord.name||"") + "|" + recName;
-      const _re = routeEdits[_rk];
-      if(_re && _re.length > 1){
-        dist = 0;
-        for(let _ri=1;_ri<_re.length;_ri++)
-          dist += haversineNM(_re[_ri-1][0],_re[_ri-1][1],_re[_ri][0],_re[_ri][1]);
-      } else {
-        dist = haversineNM(prevCoord.lat, prevCoord.lon, recStop.lat, recStop.lon);
-      }
+      dist = legDistNM(prevCoord.name, recStop.name); // route ajustée ou courbe maritime par défaut
     }
     if(recStop) prevCoord = recStop;
-    if(dist!=null) totalDist += dist;
+    if(dist!=null){ totalDist += dist; if(leg.category!=='Base' || leg.day>0) dayTotals[leg.day] = (dayTotals[leg.day]||0) + dist; }
     if(modified) changes++;
 
     const navTime = dist!=null ? dist/6 : null;
     const exceedsMaxNav = dist!=null && dist > maxNavNM;
-    const imbalanced = navTime!=null && !exceedsMaxNav && (navTime < 1 || navTime > 3);
+    const _legTargetH = effectiveDayTarget()/2/6;
+    const imbalanced = navTime!=null && !exceedsMaxNav && navTime > 0.05 && (navTime < _legTargetH*0.4 || navTime > _legTargetH*1.8);
     if(exceedsMaxNav){
       const prevName = resolvedRoute.indexOf(r) > 0 ? resolvedRoute[resolvedRoute.indexOf(r)-1].recName : origName;
       overCapLegs.push(`${prevName}→${recName} (${dist.toFixed(0)} NM)`);
@@ -3098,7 +3321,11 @@ function render(){
     bannerParts.push(`⚠ Impossible de conserver toutes les escales "Must keep" : <b>${missingMustKeep.join(', ')}</b> n'apparaissent pas dans cet itinéraire (pas assez de jours disponibles, ou escale jamais présente sur la route).`);
   }
   if(overCapLegs.length){
-    bannerParts.push(`⚠ ${overCapLegs.length} tronçon(s) dépassent le Max Nav' de ${maxNavNM} NM : <b>${overCapLegs.join(' / ')}</b>. Le Max Nav' s'applique aux escales alternatives, pas aux étapes fixes (Marina Agana). Réduis Max Nav' ou ajoute une étape intermédiaire.`);
+    bannerParts.push(`⚠ ${overCapLegs.length} tronçon(s) dépassent le Max Nav' de ${maxNavNM} NM : <b>${overCapLegs.join(' / ')}</b>.`);
+  }
+  const overCapDays = Object.entries(dayTotals).filter(([d,v]) => v > maxNavNM + 0.5);
+  if(overCapDays.length){
+    bannerParts.push(`⚠ Journée(s) au-delà du Max Nav' (${maxNavNM} NM/jour) : <b>${overCapDays.map(([d,v])=>'J'+d+' '+v.toFixed(0)+' NM').join(' / ')}</b> — souvent dû à un forçage manuel ou à une route ajustée plus longue.`);
   }
   banner.innerHTML = bannerParts.length ? bannerParts.map(p=>`<div class="banner-warn">${p}</div>`).join('') : '';
 
@@ -3110,15 +3337,160 @@ function render(){
   const startD = formatDateLong(dateForDay(0));
   const endD = formatDateLong(dateForDay(days));
   document.getElementById('routeSub').textContent =
-    `Navigation dashboard · ${startD} → ${endD} · ${DATA.route.length} étapes · vent auto (Open-Meteo)`;
+    `Navigation dashboard · ${startD} → ${endD} · ${resolvedRoute.length} étapes · vent auto (Open-Meteo)`;
   refreshActiveMap();
   buildDaySelector();
+  buildCheckpointSelect();
+  updatePlannerStatus();
 }
 
 
 
+// =====================================================================
+// ARCHIVE « Vacances été 2026 » — trajet réellement effectué, FIGÉ.
+// Snapshot en dur (export du 2 août 2026) : indépendant de DATA, des curseurs,
+// des overrides et de l'édition de routes. Rien ici n'est recalculé après le chargement.
+// =====================================================================
+const ARCHIVE_ETE_2026 = {"label": "Vacances été 2026", "startDate": "2026-07-25", "frozenOn": "2026-11-10", "route": [{"seq": 0, "day": 0, "stop": "Marina Agana", "category": "Base"}, {"seq": 1, "day": 1, "stop": "Marina Agana", "category": "Night", "locked": true}, {"seq": 2, "day": 2, "stop": "Solinska (Kokošinje)", "category": "Pause"}, {"seq": 3, "day": 2, "stop": "Maslinica", "category": "Night"}, {"seq": 4, "day": 3, "stop": "Vela Luka (Mala Luka)", "category": "Pause"}, {"seq": 5, "day": 3, "stop": "Smrka", "category": "Night"}, {"seq": 6, "day": 4, "stop": "Stari Stani (Pakleni)", "category": "Night"}, {"seq": 7, "day": 5, "stop": "Hvar East Anchorage (Essence)", "category": "Pause"}, {"seq": 8, "day": 5, "stop": "Smokvina Bay", "category": "Pause"}, {"seq": 9, "day": 5, "stop": "Stracinska", "category": "Night"}, {"seq": 10, "day": 6, "stop": "Zaglav (Swan 80)", "category": "Pause"}, {"seq": 11, "day": 6, "stop": "Marina Agana", "category": "Base"}], "stops": [{"id": 1, "name": "Marina Agana", "island": null, "role": null, "wild": null, "village": null, "swim": null, "restaurant": null, "beaugossitude": null, "must_keep": false, "excluded": false, "lat": 43.513833, "lon": 16.111667, "water": "Y", "water_comment": "Marina Sunsail — eau à quai garantie (compteur).", "atm_comment": "Marina moderne à Trogir — base de départ, environnement portuaire.", "seabed": "sand", "seabed_comment": "Fond sableux — bonne tenue d'ancre.", "mooring_comment": "Marina : Marina Sunsail.", "mooring_anchor": false, "mooring_buoy_restaurant": false, "mooring_buoy_payable": false, "mooring_quay_town": false, "mooring_marina": true}, {"id": 2, "name": "Maslinica", "island": "Solta", "role": "Night", "wild": 6, "village": 9, "swim": 7, "restaurant": 8, "beaugossitude": 5, "must_keep": true, "excluded": false, "lat": 43.397743, "lon": 16.205216, "water": "Y", "water_comment": "Marina Martinis Marchi — eau à quai disponible.", "atm_comment": "Joli village de pêcheurs à l'ouest de Šolta, ambiance authentique et calme.", "seabed": "sand", "seabed_comment": "Fond sableux — bonne tenue d'ancre.", "rating": 4, "mooring_comment": "Marina : Marina Martinis Marchi.", "mooring_anchor": false, "mooring_buoy_restaurant": false, "mooring_buoy_payable": false, "mooring_quay_town": false, "mooring_marina": true, "contacts": [{"contact": "Martinis Marchi Marina (réception)", "tel": "00385 21 659 093", "notes": "martinis-marchi.com"}, {"contact": "Restaurant Martinis Marchi", "tel": "00385 99 240 0028", "notes": "martinis-marchi.com"}]}, {"id": 8, "name": "Smrka", "island": "Brac", "role": "Pause", "wild": 10, "village": 1, "swim": 10, "restaurant": 1, "beaugossitude": 1, "must_keep": true, "excluded": false, "lat": 43.291026, "lon": 16.495289, "water": "N", "water_comment": "Mouillage en baie — aucune infrastructure eau.", "atm_comment": "Baie sauvage avec grotte sous-marine — très nature, aucune infrastructure.", "seabed": "sand", "seabed_comment": "Fond sableux — bonne tenue d'ancre. Bonne tenue d'ancre dans le sable.", "rating": 3}, {"id": 26, "name": "Stracinska", "island": "Solta", "role": "Night", "wild": 10, "village": 1, "swim": 10, "restaurant": 1, "beaugossitude": 1, "must_keep": true, "excluded": false, "lat": 43.338882, "lon": 16.365592, "water": "N", "water_comment": "Mouillage sans infra — pas d'eau à bord possible.", "atm_comment": "Baie abritée sur Šolta — sauvage, quelques bouées, très calme.", "seabed": "sand", "seabed_comment": "Fond sableux — bonne tenue d'ancre.", "rating": 3, "mooring_comment": "Ancre : autorisée — fond de sable — bonne tenue.\nBouée (payante) : Quelques bouées payantes disponibles selon la saison.", "mooring_anchor": true, "mooring_buoy_restaurant": false, "mooring_buoy_payable": true, "mooring_quay_town": false, "mooring_marina": false}, {"id": 55, "name": "Solinska (Kokošinje)", "island": "Solta", "role": "Pause", "wild": 7, "village": 2, "swim": 8, "restaurant": 2, "beaugossitude": 6, "must_keep": true, "excluded": false, "lat": 43.43811, "lon": 16.154044, "water": "N", "water_comment": "Pas d'infrastructure — pas d'eau à bord.", "atm_comment": "Baie calme sur la côte NE de Šolta, vue sur la baie de Split. Bien protégée du nord, exposée au S/SW. Plus d'herbier que de sable par endroits (Navily).", "seabed": "sand", "seabed_comment": "Source Navily : sand.", "rating": 3.5, "mooring_anchor": true, "mooring_buoy_restaurant": false, "mooring_buoy_payable": false, "mooring_quay_town": false, "mooring_marina": false, "mooring_comment": "Ancre : autorisée — fond de sable — bonne tenue. Exposé : SE, S, SW.", "contacts": []}, {"id": 56, "name": "Vela Luka (Mala Luka)", "island": "Brac", "role": "Pause", "wild": 8, "village": 1, "swim": 8, "restaurant": 1, "beaugossitude": 6, "must_keep": true, "excluded": false, "lat": 43.35293, "lon": 16.371441, "water": "N", "water_comment": "Pas d'infrastructure — pas d'eau à bord.", "atm_comment": "Petite crique sur la côte nord de Brač, bien protégée de la houle. Mouillage à ~10m avec lignes à terre recommandé, notamment par vent de sud (Navily).", "seabed": "sand", "seabed_comment": "Source Navily : sand.", "rating": 5, "mooring_anchor": true, "mooring_buoy_restaurant": false, "mooring_buoy_payable": false, "mooring_quay_town": false, "mooring_marina": false, "mooring_comment": "Ancre : autorisée — fond de sable — bonne tenue. Exposé : N, NE, E.", "contacts": []}, {"id": 57, "name": "Stari Stani (Pakleni)", "island": "Pakleni", "role": "Night", "wild": 8, "village": 1, "swim": 8, "restaurant": 1, "beaugossitude": 6, "must_keep": true, "excluded": false, "lat": 43.156271, "lon": 16.383526, "water": "N", "water_comment": "Pas d'infrastructure — pas d'eau à bord.", "atm_comment": "Baie sur l'archipel des Pakleni, bonne tenue au mouillage (10m + 62m de chaîne + lignes à terre rapporté par un équipage). Quelques moustiques le soir (Navily).", "seabed": "mixed", "seabed_comment": "Source Navily : algae.", "rating": 4.4, "mooring_anchor": true, "mooring_buoy_restaurant": false, "mooring_buoy_payable": false, "mooring_quay_town": false, "mooring_marina": false, "mooring_comment": "Ancre : autorisée — fond mixte — tenue variable. Exposé : S, SW.", "contacts": []}, {"id": 58, "name": "Hvar East Anchorage (Essence)", "island": "Hvar", "role": "Pause", "wild": 6, "village": 2, "swim": 7, "restaurant": 3, "beaugossitude": 5, "must_keep": true, "excluded": false, "lat": 43.166832, "lon": 16.443664, "water": "?", "water_comment": "À confirmer — zone avec bouées.", "atm_comment": "Mouillage sur bouées à l'est de Hvar. Note Navily moyenne (3.3/5) — un avis signale la station-service INA fermée pour travaux depuis 04/2025.", "seabed": "mixed", "seabed_comment": "Source Navily : sand, rock.", "rating": 3.3, "mooring_anchor": false, "mooring_buoy_restaurant": false, "mooring_buoy_payable": true, "mooring_quay_town": false, "mooring_marina": false, "mooring_comment": "Bouée (payante) : champ de bouées Navily, tarif à confirmer sur place.", "contacts": []}, {"id": 59, "name": "Smokvina Bay", "island": "Brac", "role": "Pause", "wild": 7, "village": 1, "swim": 7, "restaurant": 1, "beaugossitude": 6, "must_keep": true, "excluded": false, "lat": 43.306397, "lon": 16.441182, "water": "N", "water_comment": "Pas d'infrastructure — pas d'eau à bord.", "atm_comment": "Baie calme sur la côte sud de Brač, fond de sable, bonne tenue d'ancre. Un avis signale un peu de roulis et des rochers pas toujours pratiques pour les lignes à terre (Navily).", "seabed": "sand", "seabed_comment": "Source Navily : sand.", "rating": 4.2, "mooring_anchor": true, "mooring_buoy_restaurant": false, "mooring_buoy_payable": false, "mooring_quay_town": false, "mooring_marina": false, "mooring_comment": "Ancre : autorisée — fond de sable — bonne tenue. Exposé : SE, S, SW.", "contacts": []}, {"id": 60, "name": "Zaglav (Swan 80)", "island": "Solta", "role": "Pause", "wild": 8, "village": 1, "swim": 8, "restaurant": 1, "beaugossitude": 8, "must_keep": true, "excluded": false, "lat": 43.373443, "lon": 16.266657, "water": "N", "water_comment": "Pas d'infrastructure — pas d'eau à bord.", "atm_comment": "Baie sur la côte nord de Šolta, capacité ~2-3 bateaux avec ancre 6-8m + lignes à terre. Bon spot de snorkeling ('récif'), mais pas mal de guêpes signalées (Navily).", "seabed": "mixed", "seabed_comment": "Source Navily : rock, algae.", "rating": 3.7, "mooring_anchor": true, "mooring_buoy_restaurant": false, "mooring_buoy_payable": false, "mooring_quay_town": false, "mooring_marina": false, "mooring_comment": "Ancre : autorisée — fond mixte — tenue variable. Exposé : S, SW.", "contacts": []}], "waypoints": {"Marina Agana|Marina Agana": [[43.513833, 16.111667], [43.513833, 16.111667]], "Marina Agana|Solinska (Kokošinje)": [[43.5138, 16.1117], [43.512, 16.175], [43.494, 16.192], [43.472, 16.17], [43.468, 16.15], [43.458, 16.14], [43.461766, 16.161232], [43.448183, 16.1796], [43.432478, 16.18269], [43.429736, 16.160545], [43.438, 16.154]], "Solinska (Kokošinje)|Maslinica": [[43.43811, 16.154044], [43.428863, 16.158657], [43.398923, 16.200711], [43.398057, 16.202232], [43.397743, 16.205216]], "Maslinica|Vela Luka (Mala Luka)": [[43.397743, 16.205216], [43.399559, 16.200119], [43.411056, 16.197848], [43.415416, 16.202724], [43.414811, 16.26624], [43.397248, 16.328971], [43.374429, 16.362118], [43.354308, 16.376247], [43.35293, 16.371441]], "Vela Luka (Mala Luka)|Smrka": [[43.35293, 16.371441], [43.354638, 16.375278], [43.332852, 16.41468], [43.328087, 16.400183], [43.315062, 16.408682], [43.301946, 16.439581], [43.282829, 16.491594], [43.291026, 16.495289]], "Smrka|Stari Stani (Pakleni)": [[43.291026, 16.495289], [43.286453, 16.49271], [43.280955, 16.490049], [43.193914, 16.362247], [43.167251, 16.403446], [43.15354, 16.404648], [43.150534, 16.386709], [43.152663, 16.381817], [43.156271, 16.383526]], "Stari Stani (Pakleni)|Hvar East Anchorage (Essence)": [[43.156, 16.384], [43.153039, 16.382332], [43.148593, 16.423616], [43.157109, 16.441898], [43.165561, 16.439924], [43.167, 16.444]], "Hvar East Anchorage (Essence)|Smokvina Bay": [[43.166832, 16.443664], [43.168, 16.4], [43.193663, 16.352463], [43.253205, 16.394348], [43.2947, 16.43486], [43.306397, 16.441182]], "Smokvina Bay|Stracinska": [[43.306397, 16.441182], [43.306272, 16.439989], [43.321335, 16.3858], [43.330568, 16.360792], [43.338882, 16.365592]], "Stracinska|Zaglav (Swan 80)": [[43.338882, 16.365592], [43.330568, 16.360792], [43.341572, 16.332216], [43.36595, 16.273083], [43.370974, 16.263259], [43.373443, 16.266657]], "Zaglav (Swan 80)|Marina Agana": [[43.373443, 16.266657], [43.370898, 16.262301], [43.379792, 16.228055], [43.380556, 16.208542], [43.384951, 16.203733], [43.394009, 16.198483], [43.402304, 16.190329], [43.44245, 16.18166], [43.502247, 16.180801], [43.513833, 16.111667]]}, "reviewSynthesis": {"Maslinica": "Marina haut de gamme dans un joli port, eau claire pour la baignade à proximité. Plusieurs avis signalent des nuits bruyantes (bateaux de location, musique) et des douches à capacité limitée. Tarifs élevés (150 à 225 €).", "Smrka": "Baie réputée bien protégée avec une grotte sous-marine appréciée, mais plusieurs avis notent un effet d'entonnoir qui canalise le vent ou une houle surprenante malgré l'abri apparent. Bonne tenue d'ancre dans le sable.", "Stracinska": "Mouillage calme et peu fréquenté avec lignes de terre, sans infrastructure à proximité (pas de restaurant ni de commerce). Bien protégé sauf par vent du sud ; peut être surpeuplé en haute saison."}};
+(function deepFreeze(o){ Object.freeze(o); Object.values(o).forEach(v => { if(v && typeof v==='object' && !Object.isFrozen(v)) deepFreeze(v); }); })(ARCHIVE_ETE_2026);
+const archStopByName = {};
+ARCHIVE_ETE_2026.stops.forEach(s => archStopByName[s.name] = s);
+
+function archLegDist(fromName, toName){
+  const pts = ARCHIVE_ETE_2026.waypoints[fromName+'|'+toName];
+  if(pts && pts.length>1){
+    let d=0; for(let i=1;i<pts.length;i++) d += haversineNM(pts[i-1][0],pts[i-1][1],pts[i][0],pts[i][1]);
+    return d;
+  }
+  const a=archStopByName[fromName], b=archStopByName[toName];
+  return (a&&b) ? haversineNM(a.lat,a.lon,b.lat,b.lon) : null;
+}
+function archDate(day){ const d=new Date(ARCHIVE_ETE_2026.startDate+'T00:00:00'); d.setDate(d.getDate()+day); return d; }
+function archEsc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// Rendu UNE SEULE FOIS au chargement : le HTML produit ne bouge plus ensuite.
+function renderArchiveTable(){
+  const A = ARCHIVE_ETE_2026, r = A.route, tb = document.getElementById('archBody');
+  const legsPerDay = {}; r.forEach(l => { if(l.seq>0) legsPerDay[l.day]=(legsPerDay[l.day]||0)+1; });
+  const seenDay = {}; let total=0, html='', depNext=null, lastDay=null;
+  r.forEach((leg, i) => {
+    if(leg.seq===0) return; // départ J0 : pas de trajet
+    const s = archStopByName[leg.stop] || {};
+    const d = i>0 ? archLegDist(r[i-1].stop, leg.stop) : null;
+    const moved = d!=null && d>0.05;
+    if(moved) total += d;
+    const nav = moved ? d/6 : null;
+    if(leg.day!==lastDay){ depNext='09:00'; lastDay=leg.day; }
+    let dep='—', arr='—';
+    if(moved){ dep=depNext; arr=calcArrival(dep, nav); depNext=calcArrival(arr, 2); }
+    const first = !seenDay[leg.day]; seenDay[leg.day]=true;
+    const dayCell = first
+      ? `<td class="day-cell" rowspan="${legsPerDay[leg.day]}"><span class="day-badge" style="background:#8a6a35;">J${leg.day}</span><div class="day-date-sub">${formatDateShort(archDate(leg.day))}</div></td>` : '';
+    const isBase = leg.category==='Base' || leg.locked;
+    const c = (s.contacts||[]);
+    const synth = A.reviewSynthesis[leg.stop];
+    html += `<tr class="${first?'day-first-row':''}">${dayCell}
+      <td><span class="type-pill ${leg.category.toLowerCase()}">${leg.category}</span></td>
+      <td><div class="stop-name">${archEsc(leg.stop)}</div>${s.island?`<div class="stop-island">${archEsc(s.island)}</div>`:''}</td>
+      <td>${moved?`<span class="dist">${d.toFixed(0)}</span> <span class="unit">NM</span>`:'—'}</td>
+      <td>${moved?`<span class="dist">${formatDuration(nav)}</span>`:'—'}</td>
+      <td class="time-arr" style="text-align:center;">${dep}</td>
+      <td class="time-arr" style="text-align:center;">${arr}</td>
+      <td style="text-align:center;">${isBase?'—':waterCellHtml(leg.stop)}</td>
+      <td style="text-align:center;">${isBase?'—':atmCellHtml(leg.stop)}</td>
+      <td style="text-align:center;">${isBase?'—':mooringCellHtml(leg.stop)}</td>
+      <td style="font-size:11.5px;">${c.length?c.map(x=>archEsc(x.contact)).join('<br>'):'—'}</td>
+      <td style="font-size:11.5px;white-space:nowrap;">${c.length?c.map(x=>archEsc(x.tel)).join('<br>'):'—'}</td>
+      <td>${synth?`<details class="arch-avis"><summary>Avis</summary><div>${archEsc(synth)}</div></details>`:'—'}</td>
+    </tr>`;
+  });
+  tb.innerHTML = html;
+  document.getElementById('archTotalDist').innerHTML = `<span class="dist">${total.toFixed(0)}</span> <span class="unit">NM</span>`;
+  document.getElementById('archTotalTime').innerHTML = `<span class="dist">${formatDuration(total/6)}</span>`;
+  const lastD = Math.max(...r.map(l=>l.day));
+  document.getElementById('archItinNote').innerHTML =
+    `Trajet réellement effectué du <b>${formatDateLong(archDate(0))}</b> au <b>${formatDateLong(archDate(lastD))}</b> · ${lastD} jours · ${total.toFixed(0)} NM. `+
+    `Figé le ${ARCHIVE_ETE_2026.frozenOn} : non affecté par les réglages, l'édition des routes ni les mises à jour de la base d'escales. `+
+    `Horaires indicatifs (départ 09:00, pause de 2h).`;
+  buildArchDaySelector();
+}
+
+let archMap = null, archLayers = [], archDayFilter = null;
+function buildArchDaySelector(){
+  const r = ARCHIVE_ETE_2026.route, el = document.getElementById('archDaySelector');
+  if(!el) return;
+  const days = [...new Set(r.filter(l => l.day > 0).map(l => l.day))];
+  let html = `<span style="font-size:11.5px;font-weight:700;color:var(--navy);margin-right:4px;">Afficher :</span>`
+    + `<button class="day-sel-btn ${archDayFilter===null?'active':''}" onclick="setArchDayFilter(null)">Tous</button>`;
+  days.forEach(d => {
+    const end = (r.filter(l => l.day===d && l.category!=='Pause').map(l => l.stop)[0] || '').replace(/\s*\(.*\)$/, '');
+    const c = dayColor(d), act = archDayFilter === d;
+    html += `<button class="day-sel-btn" style="background:${act?c:c+'22'};color:${act?'white':c};border-color:${c};" onclick="setArchDayFilter(${d})">J${d}${end?' · '+archEsc(end):''}</button>`;
+  });
+  el.innerHTML = html;
+}
+function setArchDayFilter(d){ archDayFilter = d; buildArchDaySelector(); drawArchiveLayers(); }
+function drawArchiveLayers(){
+  if(!archMap) return;
+  archLayers.forEach(l => archMap.removeLayer(l)); archLayers = [];
+  const r = ARCHIVE_ETE_2026.route, f = archDayFilter, bounds = [];
+  for(let i = 1; i < r.length; i++){
+    const day = r[i].day;
+    if(f !== null && day !== f) continue;
+    const a = archStopByName[r[i-1].stop], b = archStopByName[r[i].stop];
+    if(!a || !b) continue;
+    const d = archLegDist(a.name, b.name);
+    if(d == null || d < 0.05) continue;
+    const pts = (ARCHIVE_ETE_2026.waypoints[a.name+'|'+b.name] || [[a.lat,a.lon],[b.lat,b.lon]]).map(p => [p[0], p[1]]);
+    const line = L.polyline(pts, { color: dayColor(day), weight: f!==null ? 5 : 4, opacity: 0.92 })
+      .bindTooltip(`J${day} · ${a.name} → ${b.name}<br><b>${d.toFixed(1)} NM · ${formatDuration(d/6)}</b>`, { sticky: true })
+      .addTo(archMap);
+    archLayers.push(line);
+    pts.forEach(p => bounds.push(p));
+  }
+  const labels = {};
+  r.forEach(l => {
+    const isDepart = f !== null && l.day === f - 1 && (l.category === 'Night' || l.category === 'Base');
+    if(f !== null && l.day !== f && !isDepart) return;
+    if(l.category === 'Base' || l.locked){
+      labels[l.stop] = labels[l.stop] || { txt: '⚓ ' + l.stop, cat: 'Base' };
+      return;
+    }
+    const prev = labels[l.stop];
+    labels[l.stop] = { txt: (prev && prev.cat !== 'Base' ? prev.txt + ' / ' : '') + `J${l.day} · ${l.stop}`,
+                       cat: (prev && prev.cat === 'Night') ? 'Night' : l.category, depart: isDepart };
+  });
+  Object.entries(labels).forEach(([name, lab]) => {
+    const s = archStopByName[name]; if(!s) return;
+    const isNight = lab.cat === 'Night', isBase = lab.cat === 'Base';
+    const m = L.marker([s.lat, s.lon], { icon: leafletIcon(isNight, isBase, false, true), interactive: false })
+      .bindTooltip(lab.txt, { permanent: true, direction: 'top', offset: [0, -10],
+        className: 'live-bubble' + (lab.depart ? ' live-bubble-depart' : (isNight ? ' live-bubble-night' : '')) + (isBase ? ' live-bubble-base' : '') })
+      .addTo(archMap);
+    archLayers.push(m);
+    bounds.push([s.lat, s.lon]);
+  });
+  if(bounds.length) archMap.fitBounds(bounds, { padding: [40, 40], maxZoom: 13 });
+}
+function renderArchiveMap(){
+  const note = document.getElementById('archMapNote');
+  if(typeof L === 'undefined'){ note.textContent = 'Carte indisponible hors-ligne (fond de carte non chargé).'; return; }
+  if(!archMap){
+    archMap = L.map('archMapDiv', { scrollWheelZoom: true });
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 19,
+      attribution: 'Tiles &copy; Esri &mdash; Source: Esri, HERE, Garmin, FAO, NOAA, USGS, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(archMap);
+    addIslandLabels(archMap);
+    archMap.setView([43.3, 16.35], 10);
+    drawArchiveLayers();
+  }
+  setTimeout(() => { archMap.invalidateSize(); if(!archLayers.length) drawArchiveLayers(); }, 50);
+}
+
 buildCheckpointSelect();
 render();
+renderArchiveTable();
 renderEscalesTab();
 preloadWindForecast();
 </script>
