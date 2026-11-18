@@ -3707,7 +3707,31 @@ function applyAreaTexts(){
     if(t !== n.nodeValue) n.nodeValue = t;
   }
 }
+// Sélecteur de zone (simple, construit depuis AREAS) : changer de zone recharge la page avec ?area=<id>
+// (zone par défaut = URL sans paramètre). Rien n'est mémorisé : sans ?area=, l'app ouvre toujours la Croatie.
+function buildAreaSwitcher(){
+  const ids = Object.keys(AREAS);
+  if(ids.length < 2) return;
+  const pill = document.createElement('div');
+  pill.className = 'pill';
+  pill.title = 'Zone de navigation — changer de zone recharge la page';
+  pill.innerHTML = '🧭 Zone <select id="areaSelect" onchange="switchArea(this.value)" style="border:none;background:transparent;font-weight:700;font-family:inherit;font-size:inherit;color:inherit;cursor:pointer;">'
+    + ids.map(id => `<option value="${archEsc(id)}" style="color:#0c2d49;"${id === AREA_ID ? ' selected' : ''}>${archEsc(AREAS[id].name || id)}</option>`).join('')
+    + '</select>';
+  document.querySelector('.header-pills').prepend(pill);
+}
+function switchArea(id){
+  if(id === AREA_ID || !AREAS[id]) return;
+  if(!confirm('Changer de zone recharge la page : les modifications non exportées (réglages, routes, forçages) seront perdues. Continuer ?')){
+    document.getElementById('areaSelect').value = AREA_ID;
+    return;
+  }
+  const url = new URL(location.href);
+  if(id === DEFAULT_AREA_ID) url.searchParams.delete('area'); else url.searchParams.set('area', id);
+  location.href = url.toString();
+}
 applyAreaTexts();
+buildAreaSwitcher();
 document.getElementById('cruiseStartInput').value = fmtISODate(CRUISE_START);
 buildCheckpointSelect();
 render();
