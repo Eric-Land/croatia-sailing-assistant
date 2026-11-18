@@ -861,6 +861,41 @@ return {
 };
 })();
 
+// ---- Zone : Côte d'Émeraude – îles Anglo-Normandes (Dinard, Saint-Malo, Cap Fréhel, Jersey, Guernesey) ----
+// Zone vide pour l'instant : seule la base est définie. Coordonnées de Dinard (Port du Bec de la Vallée)
+// approximatives, à vérifier sur la carte (sources : Sources/Cote-Emeraude).
+// Hors périmètre, à traiter plus tard : marées (marnage jusqu'à 12-13 m) et courants (Raz Blanchard, passage
+// de la Déroute) absents du modèle de temps de nav (≈ 6 nds, vent seul) ; formalités douanières Jersey/Guernesey (hors UE).
+AREAS.emeraude = {
+  name: "Côte d'Émeraude — îles Anglo-Normandes",
+  title: 'Émeraude Sailing Assistant',
+  country: 'France',
+  fileSlug: 'emeraude',
+  timezone: 'Europe/Paris',
+  baseStop: 'Dinard',
+  mainlandLabel: 'Continent (Saint-Malo)',
+  farExamples: 'Jersey, Guernesey, Chausey…',
+  prefill: { with: "l'escale de base seule (aucune autre escale définie pour l'instant)", back: "à l'itinéraire de base" },
+  checkpointSeq: 1,
+  // Une seule escale : emprise fixe (Cap Fréhel 48,68 N / 2,32 W, Jersey 49,2 N, Guernesey 49,45 N), sinon division par zéro
+  bounds: { latMin: 48.55, latMax: 49.55, lonMin: -2.75, lonMax: -1.85 },
+  center: [48.95, -2.30], zoom: 9,
+  DATA: {
+    stops: [{ id: 1, name: 'Dinard', island: null, role: null, wild: null, village: null, swim: null, restaurant: null,
+              beaugossitude: null, must_keep: false, excluded: false, lat: 48.636, lon: -2.056,
+              water: '?', water_comment: 'Port de Dinard (Bec de la Vallée) — eau à quai à confirmer.',
+              atm_comment: 'Port de Dinard, face à Saint-Malo — base de départ.',
+              seabed: null, seabed_comment: '', mooring_comment: 'Port : Port du Bec de la Vallée (à confirmer).',
+              mooring_anchor: false, mooring_buoy_restaurant: false, mooring_buoy_payable: false,
+              mooring_quay_town: false, mooring_marina: true }],
+    route: [{ seq: 0, day: 0, stop: 'Dinard', category: 'Base' },   // squelette seul : départ J0…
+            { seq: 1, day: 6, stop: 'Dinard', category: 'Base' }],  // …et retour J6 ; le planificateur remplit le reste
+    protection: [], mapping: {}, reviewSynthesis: {}, islandAnchors: {}, waterConstraintDays: 2
+  }
+  // Pas d'ISLAND_POLYGONS, ISLAND_LABELS, ISLAND_NAME_POS, DEFAULT_ROUTE_WAYPOINTS ni archive pour l'instant :
+  // tracés en courbes directes, routes à dessiner avec l'éditeur ✏️.
+};
+
 // ---- Sélection de la zone ----
 const AREA_ID = (() => {
   const q = new URLSearchParams(location.search).get('area');
@@ -2644,6 +2679,8 @@ function renderLeafletMarkers(){
   });
   // Recadrage automatique quand l'itinéraire ou le jour affiché change (pas à chaque zoom manuel)
   const _sig = String(dayFilter) + '|' + rr.map(r => r.recName).join(',');
+  // Emprise minimale du profil de zone (bounds), comme pour la carte schématique ; Croatie : aucune
+  if(AREA.bounds && dayFilter === null) _fitPts.push([AREA.bounds.latMin, AREA.bounds.lonMin], [AREA.bounds.latMax, AREA.bounds.lonMax]);
   if(_sig !== _lastFitSig && _fitPts.length){
     _lastFitSig = _sig;
     leafletMap.fitBounds(_fitPts, { padding: [40, 40], maxZoom: 13 });
@@ -3075,6 +3112,10 @@ function updatePlannerStatus(){
   if(!plannerActive){
     el.className = 'planner-status';
     el.innerHTML = `📋 <b>Pré-rempli</b> avec ${AREA.prefill.with}. Bouge un réglage pour générer une nouvelle navigation.`;
+  } else if(!DATA.stops.some(s => s.lat != null && s.name !== AREA.baseStop)){
+    el.className = 'planner-status on';
+    el.innerHTML = `⚠ <b>Aucune escale définie pour cette zone</b> : le planificateur ne peut pas encore générer de boucle.`
+      + `<br><button onclick="resetToSummerPrefill()">↺ Revenir ${AREA.prefill.back}</button>`;
   } else {
     el.className = 'planner-status on';
     el.innerHTML = `⚙ <b>Boucle générée</b> selon tes réglages : cible ${eff} NM / jour, plafond ${maxNavNM} NM / jour.`
