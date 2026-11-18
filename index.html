@@ -2329,7 +2329,8 @@ function exportToExcel(){
 
 // ─── Export JSON — le DATA brut de l'app, pour diff/versioning hors du HTML ─────
 function exportDataJSON(){
-  const blob = new Blob([JSON.stringify(DATA, null, 2)], {type:"application/json;charset=utf-8"});
+  // Étiqueté avec la zone ("area") pour ne jamais confondre les exports de deux zones
+  const blob = new Blob([JSON.stringify({area: AREA_ID, ...DATA}, null, 2)], {type:"application/json;charset=utf-8"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = exportFilenameStamp()+"_croisiere_"+AREA.fileSlug+"_data.json";
@@ -2340,7 +2341,8 @@ function exportDataJSON(){
 // ─── Export JSON — les waypoints de route (routeEdits), y compris les corrections manuelles
 // faites en mode "Modifier les routes" (drag / insertion / suppression de points). ─────────
 function exportRoutesJSON(){
-  const blob = new Blob([JSON.stringify(routeEdits, null, 2)], {type:"application/json;charset=utf-8"});
+  // Format étiqueté : {"area": "<zone>", "routes": {...}} — l'import refuse un fichier d'une autre zone
+  const blob = new Blob([JSON.stringify({area: AREA_ID, routes: routeEdits}, null, 2)], {type:"application/json;charset=utf-8"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = exportFilenameStamp()+"_croisiere_"+AREA.fileSlug+"_routes.json";
@@ -2355,7 +2357,20 @@ function importRoutesJSON(file){
   const reader = new FileReader();
   reader.onload = function(e){
     try{
-      const imported = JSON.parse(e.target.result);
+      const parsed = JSON.parse(e.target.result);
+      // Fichier étiqueté {"area", "routes"} ; ancien format (objet de routes seul, sans "area") = zone par défaut (Croatie)
+      const tagged = parsed && typeof parsed === 'object' && typeof parsed.area === 'string';
+      const fileArea = tagged ? parsed.area : DEFAULT_AREA_ID;
+      if(fileArea !== AREA_ID){
+        const nom = id => (AREAS[id] && AREAS[id].name) || id;
+        alert("Import refusé : ce fichier de routes appartient à la zone « "+nom(fileArea)+" », pas à la zone affichée (« "+nom(AREA_ID)+" »).");
+        return;
+      }
+      if(tagged && (!parsed.routes || typeof parsed.routes !== 'object')){
+        alert("Import refusé : ce fichier n'est pas un export de routes (🧭 Exporter routes).");
+        return;
+      }
+      const imported = tagged ? parsed.routes : parsed;
       Object.assign(routeEdits, imported);
       _clearHandles();
       renderLeafletMarkers();
