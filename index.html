@@ -879,7 +879,7 @@ AREAS.emeraude = {
   checkpointSeq: 1,
   // Une seule escale : emprise fixe (Cap Fréhel 48,68 N / 2,32 W, Jersey 49,2 N, Guernesey 49,45 N), sinon division par zéro
   bounds: { latMin: 48.55, latMax: 49.55, lonMin: -2.75, lonMax: -1.85 },
-  center: [48.95, -2.30], zoom: 9,
+  center: [48.65, -2.025], zoom: 8, // carte centrée sur Saint-Malo ; le zoom 8 garde Jersey en vue
   DATA: {
     stops: [{ id: 1, name: 'Dinard', island: null, role: null, wild: null, village: null, swim: null, restaurant: null,
               beaugossitude: null, must_keep: false, excluded: false, lat: 48.636, lon: -2.056,
@@ -2694,8 +2694,12 @@ function renderLeafletMarkers(){
   });
   // Recadrage automatique quand l'itinéraire ou le jour affiché change (pas à chaque zoom manuel)
   const _sig = String(dayFilter) + '|' + rr.map(r => r.recName).join(',');
-  // Emprise minimale du profil de zone (bounds), comme pour la carte schématique ; Croatie : aucune
-  if(AREA.bounds && dayFilter === null) _fitPts.push([AREA.bounds.latMin, AREA.bounds.lonMin], [AREA.bounds.latMax, AREA.bounds.lonMax]);
+  // Itinéraire réduit à une seule escale (zone vide) : vue du profil (center/zoom) au lieu d'un zoom sur ce point ; Croatie : jamais le cas
+  const _onePoint = _fitPts.length && _fitPts.every(p => p[0] === _fitPts[0][0] && p[1] === _fitPts[0][1]);
+  if(_onePoint && AREA.center && _sig !== _lastFitSig){
+    _lastFitSig = _sig;
+    leafletMap.setView(AREA.center, AREA.zoom || 11);
+  }
   if(_sig !== _lastFitSig && _fitPts.length){
     _lastFitSig = _sig;
     leafletMap.fitBounds(_fitPts, { padding: [40, 40], maxZoom: 13 });
