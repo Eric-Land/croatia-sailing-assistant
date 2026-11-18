@@ -21,7 +21,7 @@ Nearly everything derived from the area is computed **once at load** (`const`), 
 ## The new area: Côte d'Émeraude – Channel Islands (`?area=emeraude`)
 Dinard / Saint-Malo / Cap Fréhel / Jersey / Guernsey, base **Dinard**, **empty area for now** (no stop other than the base).
 - `title` "Émeraude Sailing Assistant", `country` "France", `mainlandLabel` "Continent (Saint-Malo)", `timezone` "Europe/Paris".
-- `DATA.stops`: Dinard only (Port du Bec de la Vallée, ≈ 48.636 N / 2.056 W, to be checked on the chart), scores `null`.
+- `DATA.stops`: Dinard only (48.6327 N / 2.0552 W, coordinates given by the user), scores `null`.
 - `DATA.route`: skeleton only, J0 at Dinard and the return to Dinard on J6.
 - Fixed extent: `bounds` lat 48.55–49.55, lon −2.75 to −1.85, `center` [48.65, −2.025] (Saint-Malo), `zoom` 8, used by Leaflet while the route has a single stop (bounds otherwise avoid a division by zero in `project()`).
 - Empty pools: the planner must not crash; it shows « Aucune escale définie pour cette zone ».

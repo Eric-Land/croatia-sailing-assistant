@@ -862,8 +862,8 @@ return {
 })();
 
 // ---- Zone : Côte d'Émeraude – îles Anglo-Normandes (Dinard, Saint-Malo, Cap Fréhel, Jersey, Guernesey) ----
-// Zone vide pour l'instant : seule la base est définie. Coordonnées de Dinard (Port du Bec de la Vallée)
-// approximatives, à vérifier sur la carte (sources : Sources/Cote-Emeraude).
+// Zone vide pour l'instant : seule la base est définie. Coordonnées de la base de Dinard
+// fournies par l'utilisateur : 48,6327 N / 2,0552 W (sources : Sources/Cote-Emeraude).
 // Hors périmètre, à traiter plus tard : marées (marnage jusqu'à 12-13 m) et courants (Raz Blanchard, passage
 // de la Déroute) absents du modèle de temps de nav (≈ 6 nds, vent seul) ; formalités douanières Jersey/Guernesey (hors UE).
 AREAS.emeraude = {
@@ -882,7 +882,7 @@ AREAS.emeraude = {
   center: [48.65, -2.025], zoom: 8, // carte centrée sur Saint-Malo ; le zoom 8 garde Jersey en vue
   DATA: {
     stops: [{ id: 1, name: 'Dinard', island: null, role: null, wild: null, village: null, swim: null, restaurant: null,
-              beaugossitude: null, must_keep: false, excluded: false, lat: 48.636, lon: -2.056,
+              beaugossitude: null, must_keep: false, excluded: false, lat: 48.6327, lon: -2.0552,
               water: '?', water_comment: 'Port de Dinard (Bec de la Vallée) — eau à quai à confirmer.',
               atm_comment: 'Port de Dinard, face à Saint-Malo — base de départ.',
               seabed: null, seabed_comment: '', mooring_comment: 'Port : Port du Bec de la Vallée (à confirmer).',
