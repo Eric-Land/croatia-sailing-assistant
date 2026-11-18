@@ -11,31 +11,37 @@ Guidance for Claude Code in this repository.
 5. **External libraries.** Propose any external library (CDN script, library or external service) first, with its name, version, URL and why, and wait for the user's OK before adding it.
 6. **No secrets.** The repo is public: no API key, token or password in any file. Use keyless services, or ask the user.
 7. **French.** UI text, code comments and commit messages are in French.
-8. **Sources and versions.** Source documents (maps, extracts, notes) are in
-   "~/Library/Mobile Documents/com~apple~CloudDocs/Documents/0 - 0 Next move/0 - 0 - IA/Croatie Sailing Assistant/Sources".
+8. **Sources and versions.** Source documents (maps, extracts, notes) are per area, in
+   "~/Library/Mobile Documents/com~apple~CloudDocs/Documents/0 - 0 Next move/0 - 0 - IA/Croatie Sailing Assistant/Sources/<area>"
+   (`Sources/Croatie`, `Sources/Cote-Emeraude`, one folder per new area).
    Read them there; never copy them into the repo (it is public).
-   When the user says "merged": switch to main, pull, then copy index.html to the
-   "Versions" folder next to "Sources" as "AAAA MM JJ - Croatia Sailing Assistant - Update N.html"
-   (N = highest number in that folder + 1). Never overwrite a file there.
+   When the user says "merged": switch to main and pull, then compare index.html with the
+   highest-numbered file in the "Versions" folder next to "Sources". Only if it differs, copy it there as
+   "AAAA MM JJ - Croatia Sailing Assistant - Update N.html" (N = that highest number + 1);
+   otherwise make no copy and say so. Never overwrite a file there.
 
 ## Overview
 
-Single-file web app (`index.html`, ~3,600 lines, ~270 KB) for planning a sailing loop around the central Dalmatian islands from Marina Agana. No package manager, linter or tests: run it with `open index.html`. CDN dependencies: Leaflet 1.9.4, SheetJS 0.18.5. Runtime services: Open-Meteo (wind), Esri World Street Map (tiles; direct OSM tiles are blocked).
+Single-file web app (`index.html`, ~3,760 lines, ~280 KB) for planning a sailing loop. Several sailing areas, one profile each: Croatia (central Dalmatian islands from Marina Agana, the default) and Côte d'Émeraude (Dinard, empty for now). No package manager, linter or tests: run it with `open index.html`. CDN dependencies: Leaflet 1.9.4, SheetJS 0.18.5. Runtime services: Open-Meteo (wind), Esri World Street Map (tiles; direct OSM tiles are blocked).
 
 Some lines hold huge inline JSON: read the file by line range or `grep -n`, never whole.
 
 ## Layout
 
 1. `<style>` (~lines 6–362).
-2. Markup: pirate SVG background, header (total NM, changes, J0 date), left column (crew sliders, constraints), tabs via `TAB_DEFS`/`switchTab()`: `itin`, `escales`, `carte`, `archItin`, `archCarte`.
-3. One `<script>` (~line 774): starts with `const DATA = {...}` on one line, ends with the boot sequence (`buildCheckpointSelect(); render(); …; preloadWindForecast();`).
+2. Markup: pirate SVG background, header (area switcher added at boot, total NM, changes, J0 date), left column (crew sliders, constraints), tabs via `TAB_DEFS`/`switchTab()`: `itin`, `escales`, `carte`, `archItin`, `archCarte`. The static HTML is written for Croatia; `applyAreaTexts()` swaps its texts for another area and removes the archive tabs when the area has no archive.
+3. One `<script>` (~line 774):
+   - **Area registry** (~lines 775–905): `AREAS.croatia` is an IIFE holding Croatia's data literals verbatim (`DATA` on one huge line, `ISLAND_POLYGONS`, `ISLAND_LABELS`, `ISLAND_LABEL_POS`, `ISLAND_NAME_POS`, `DEFAULT_ROUTE_WAYPOINTS`, `ARCHIVE_ETE_2026`) and returns the profile; `AREAS.emeraude` follows. Then `AREA_ID` (from `?area=`, unknown or missing = `DEFAULT_AREA_ID` `'croatia'`), `AREA`, and `const DATA = AREA.DATA`.
+   - The rest of the code reads the usual globals (`DATA`, `ISLAND_POLYGONS`, `ISLAND_LABELS`, `ISLAND_NAME_POS`, `DEFAULT_ROUTE_WAYPOINTS`, `AREA_ARCHIVE`), each set from `AREA` where it was defined before.
+   - Ends with the boot sequence (`applyAreaTexts(); buildAreaSwitcher(); buildCheckpointSelect(); render(); …; preloadWindForecast();`).
 
 ## Data
 
+- **Areas**: one profile per area in `AREAS`; adding an area = adding a profile, no code change. Fields (all optional except `DATA`, `title`, `baseStop`) are listed in a comment above `const AREAS`: `name`, `title`, `country`, `fileSlug`, `timezone`, `baseStop`, `mainlandLabel`, `farExamples`, `prefill`, `checkpointSeq`, `seaGrid` or `bounds`, `center`/`zoom`, `archiveView`, the data globals below, `archive`. Switching area reloads the page (`switchArea()`, nothing is stored). JSON exports carry `"area"`; `importRoutesJSON` refuses another area's file (untagged = Croatia).
 - **`DATA`**: `stops` (escales with scores, role, water, mooring, `excluded`…), `route` (legs `{seq, day, stop, category: 'Base'|'Pause'|'Night', locked?}`), `protection`, `reviewSynthesis`, `mapping`, `islandAnchors`. Lookups: `stopByName`, `protByName`.
 - **`ISLAND_POLYGONS`**: coastlines as `[lon, lat]`, used by `findSeaRoute`/`segCrossesIslandGPS`.
 - **`DEFAULT_ROUTE_WAYPOINTS`**: hand-corrected routes keyed `"StopA|StopB"`, points as `[lat, lon]` (note the reversed order), preloaded into `routeEdits`.
-- **`ARCHIVE_ETE_2026`**: frozen (`deepFreeze`) snapshot of the trip sailed in summer 2026, rendered only by `arch*` functions. Never make it read live state.
+- **`ARCHIVE_ETE_2026`**: Croatia's frozen (`deepFreeze`) snapshot of the trip sailed in summer 2026, exposed as `AREA_ARCHIVE` (null for an area without archive) and rendered only by `arch*` functions. Never make it read live state.
 
 ## State and render
 
