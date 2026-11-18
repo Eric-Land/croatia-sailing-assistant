@@ -27,6 +27,9 @@ Dinard / Saint-Malo / Cap Fréhel / Jersey / Guernsey, base **Dinard**, **empty 
 - Empty pools: the planner must not crash; it shows « Aucune escale définie pour cette zone ».
 - **Out of scope, flagged for later:** tides (range up to 12–13 m) and currents (Raz Blanchard, Déroute), not in the nav-time model (≈ 6 kn, wind only); customs formalities for Jersey/Guernsey.
 
+## Known debt: Croatia routing hard-coded
+`seaCurveLatLngs()` in `index.html` still holds Croatia-only routing written into the code: bay exit points (`BAY_EXIT`: Tatinja, Milna, Smrka, Stari Grad…), the Šolta–Brač channel, the Brač–Hvar corridor (lat 43.245) and the Hvar–Vis corridor, all keyed on Croatian island names (`'Solta'`, `'Brac'`, `'Hvar'`, `'Vis'`). The function is not called anywhere today (dead code), so it doesn't affect other areas. If an area ever needs this kind of routing, move these values into its profile (e.g. `bayExits`, `corridors`) instead of adding area names to the code, and keep Croatia's values identical (rule 3).
+
 ## Steps (one commit per step, in French, full diff shown before each commit)
 Diffs that touch the huge one-line JSON are shown as `git diff --stat` + a cut-down diff + a hash check that the moved lines are byte-identical (agreed by the user).
 
