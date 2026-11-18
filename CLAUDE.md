@@ -11,12 +11,14 @@ Guidance for Claude Code in this repository.
 5. **External libraries.** Propose any external library (CDN script, library or external service) first, with its name, version, URL and why, and wait for the user's OK before adding it.
 6. **No secrets.** The repo is public: no API key, token or password in any file. Use keyless services, or ask the user.
 7. **French.** UI text, code comments and commit messages are in French.
-8. **Sources and versions.** Source documents (maps, extracts, notes) are in
-   "~/Library/Mobile Documents/com~apple~CloudDocs/Documents/0 - 0 Next move/0 - 0 - IA/Croatie Sailing Assistant/Sources".
+8. **Sources and versions.** Source documents (maps, extracts, notes) are per area, in
+   "~/Library/Mobile Documents/com~apple~CloudDocs/Documents/0 - 0 Next move/0 - 0 - IA/Croatie Sailing Assistant/Sources/<area>"
+   (`Sources/Croatie`, `Sources/Cote-Emeraude`, one folder per new area).
    Read them there; never copy them into the repo (it is public).
-   When the user says "merged": switch to main, pull, then copy index.html to the
-   "Versions" folder next to "Sources" as "AAAA MM JJ - Croatia Sailing Assistant - Update N.html"
-   (N = highest number in that folder + 1). Never overwrite a file there.
+   When the user says "merged": switch to main and pull, then compare index.html with the
+   highest-numbered file in the "Versions" folder next to "Sources". Only if it differs, copy it there as
+   "AAAA MM JJ - Croatia Sailing Assistant - Update N.html" (N = that highest number + 1);
+   otherwise make no copy and say so. Never overwrite a file there.
 
 ## Overview
 
